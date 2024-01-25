@@ -12,6 +12,9 @@ wasm-bindgen = "0.2"
 js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
 console_error_panic_hook = "0.1.6"
+wasmi = "0.31.2"
+anyhow = "1.0.79"
+wat = "1.0.84"
 
 [dependencies.web-sys]
 version = "0.3"
