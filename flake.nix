@@ -41,6 +41,7 @@
           buildInputs = with pkgs; [
             pkg-config
             openssl
+            wasm-pack
           ];
         };
 
