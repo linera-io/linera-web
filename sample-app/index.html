@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+         let Linera = {
+             loaded: new Promise(resolve => {
+                 const listener = window.addEventListener("linera-wallet-load", () => {
+                     resolve();
+                     window.removeEventListener("linera-wallet-load", listener);
+                 });
+                 return false;
+             }),
+             sendRequest: function (request) {
+                 nextMessageId: 0,
+                 responses: new Map(),
+
+                 return new Promise(resolve => {
+                     this.responses.set(this.nextMessageId, resolve);
+                     window.dispatchEvent(new CustomEvent(
+                         "linera-wallet-request",
+                         {
+                             detail: {
+                                 id: this.nextMessageId,
+                                 message: request,
+                             },
+                         },
+                     ));
+                 });
+             },
+         };
+
+         window.addEventListener("linera-wallet-response", e => {
+             Linera.responses.get(e.detail.id)?.(e.detail.message);
+             return false;
+         });
+
+         async function foo() {
+             await Linera.loaded;
+             const response = await Linera.sendRequest("Hello!");
+         }
+
+         foo();
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
