@@ -13,9 +13,17 @@ js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
 console_error_panic_hook = "0.1.6"
 
+[dependencies.linera-base]
+path = "./linera-protocol/linera-base"
+features = ["web"]
+
+[dependencies.linera-core]
+path = "./linera-protocol/linera-core"
+features = ["web"]
+
 [dependencies.web-sys]
 version = "0.3"
 features = [
     "console",
-    "Window"
+    "Window",
 ]

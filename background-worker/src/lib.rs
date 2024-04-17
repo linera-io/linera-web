@@ -1,3 +1,10 @@
+use linera_base::{
+    identifiers::ChainId,
+};
+use linera_core::{
+    client::ArcChainClient,
+};
+
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 #[macro_use]
