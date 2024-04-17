@@ -1,10 +1,3 @@
-function handleMessage(event) {
-    console.log("received message");
-    if (event.source != window) return;
-    console.log("received message", event.data);
-    return true;
-}
-
 function respond(event, response) {
     window.dispatchEvent(new CustomEvent("linera-wallet-response", {
         detail: {

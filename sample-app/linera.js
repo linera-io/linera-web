@@ -6,9 +6,15 @@ let Linera = {
         });
         return false;
     }),
+
     sendRequest: (() => request => {
         let nextMessageId = 0;
         let responses = new Map();
+
+        window.addEventListener("linera-wallet-response", e => {
+            responses.get(e.detail.id)?.(e.detail.message);
+            return false;
+        });
 
         return new Promise(resolve => {
             responses.set(nextMessageId, resolve);
@@ -24,8 +30,3 @@ let Linera = {
         });
     })(),
 };
-
-window.addEventListener("linera-wallet-response", e => {
-    Linera.responses.get(e.detail.id)?.(e.detail.message);
-    return false;
-});

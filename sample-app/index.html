@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="linera.js">
+        <script src="linera.js"></script>
         <script>
-
          async function foo() {
              await Linera.loaded;
              const response = await Linera.sendRequest("Hello!");
+             console.log(response);
          }
 
          foo();
