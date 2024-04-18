@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
+import { customElement, property, state } from 'lit/decorators.js'
 
 type Wallet = {
   default: string;
@@ -22,10 +22,7 @@ export class WalletPicker extends LitElement {
   `;
 
   @property()
-  wallet?: Wallet;
-
-  @property()
-  onChange?: (event: Event) => void;
+  onChange?: (wallet: string) => Promise<void>;
 
   render = () => html`
     <form>
@@ -35,13 +32,15 @@ export class WalletPicker extends LitElement {
   `;
 
   private async _onChange(event: Event & { target: HTMLInputElement }) {
+    console.log("onChange:", this.onChange);
     const contents = await event.target.files![0].text();
-    this.onChange?.(contents);
+    await this.onChange?.(contents);
   }
 }
 
 @customElement('linera-sidebar')
 export class Sidebar extends LitElement {
+  @state()
   wallet?: Wallet;
 
   static styles = css`
@@ -53,11 +52,15 @@ export class Sidebar extends LitElement {
     }
   `;
 
-  render = () => html`
-    <h2>Wallet</h2>
-    ${this.wallet && html`<p>Your current wallet is <span class="chain-id">${this.wallet.default}</span>.</p>`}
-    <linera-wallet-picker></linera-wallet-picker>
-  `;
+  render() {
+    return html`
+      <h2>Wallet</h2>
+      ${this.wallet
+        ? html`<p>Your current wallet is <span class="chain-id">${this.wallet.default}</span>.</p>`
+        : html`<p>You don't currently have a wallet selected.</p>`}
+      <linera-wallet-picker .onChange=${(wallet: string) => this.onWalletChange(wallet)}></linera-wallet-picker>
+    `;
+  }
 
   constructor() {
     super();
