@@ -4,8 +4,7 @@ function respond(id, message) {
     }))
 }
 
-window.addEventListener("linera-wallet-request", async e => {
-    respond(e.detail.id, await chrome.runtime.sendMessage(e.detail.message));
-});
+window.addEventListener("linera-wallet-request", async e =>
+    respond(e.detail.id, await chrome.runtime.sendMessage(e.detail.message)));
 
-window.dispatchEvent(new Event("linera-wallet-load"));
+window.dispatchEvent(new Event("linera-wallet-loaded"));
