@@ -4,7 +4,7 @@ use web_sys::*;
 mod util;
 
 #[wasm_bindgen]
-pub fn query(n: u32) -> u32 {
+pub async fn query(n: u32) -> u32 {
     n + 1
 }
 
