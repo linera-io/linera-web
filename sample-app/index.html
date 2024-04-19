@@ -5,8 +5,11 @@
         <script>
          async function foo() {
              await Linera.loaded;
-             const response = await Linera.sendRequest("Hello!");
-             console.log(response);
+             const response = await Linera.sendRequest({
+                 'function': 'query',
+                 'arguments': [3],
+             });
+             console.log('response: ', response);
          }
 
          foo();

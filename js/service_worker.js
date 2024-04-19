@@ -1,5 +1,9 @@
-import wasm_bindgen from "./linera_web.js";
+import init from './linera_web.js';
 
-(async () => await wasm_bindgen(
-    (chrome.runtime || browser.runtime).getURL('linera_web_bg.wasm')
-))();
+const runtime = chrome.runtime || browser.runtime;
+
+(async () => {
+    const wasm = await init(runtime.getURL('linera_web_bg.wasm'));
+    runtime.onMessage.addListener((message, _sender, respond) =>
+        respond(wasm[message.function].call(null, message.arguments)));
+})();

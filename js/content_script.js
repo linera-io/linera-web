@@ -1,15 +1,11 @@
-function respond(event, response) {
+function respond(id, message) {
     window.dispatchEvent(new CustomEvent("linera-wallet-response", {
-        detail: {
-            id: event.detail.id,
-            message: response,
-        }
+        detail: { id, message },
     }))
 }
 
-window.addEventListener("linera-wallet-request", e => {
-    console.log("got request", e.detail);
-    respond(e, "Hi!");
+window.addEventListener("linera-wallet-request", async e => {
+    respond(e.detail.id, await chrome.runtime.sendMessage(e.detail.message));
 });
 
 window.dispatchEvent(new Event("linera-wallet-load"));
