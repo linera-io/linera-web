@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="linera.js"></script>
+        <script>
+         async function foo() {
+             const response = await Linera.sendRequest({
+                 'function': 'query',
+                 'arguments': [3],
+             });
+             console.log('response: ', response);
+         }
+
+         foo();
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
