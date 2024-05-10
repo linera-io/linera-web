@@ -8,11 +8,12 @@
     },
     "options_page": "options.html",
     "action": {
-        "default_title": "POPUP TITLE"
+        "default_title": "Linera"
     },
     "side_panel": {
         "default_title": "SIDEBAR TITLE",
-        "default_path": "sidebar.html"
+        "default_path": "sidebar.html",
+        "open_at_install": true
     },
     "content_scripts": [
         {
