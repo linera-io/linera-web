@@ -1,0 +1,28 @@
+{
+    "name" : "linera-web",
+    "version" : "1.0",
+    "description" : "linera-web",
+    "permissions": ["sidePanel"],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval';"
+    },
+    "options_page": "options.html",
+    "action": {
+        "default_title": "POPUP TITLE"
+    },
+    "side_panel": {
+        "default_title": "SIDEBAR TITLE",
+        "default_path": "sidebar.html"
+    },
+    "content_scripts": [
+        {
+            "matches": ["file:///*"],
+            "js": ["content-script.js"]
+        }
+    ],
+    "background": {
+        "service_worker": "service-worker.js",
+        "type": "module"
+    },
+    "manifest_version": 3
+}
