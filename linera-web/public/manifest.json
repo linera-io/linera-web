@@ -1,18 +1,24 @@
 {
-    "name" : "linera-web",
+    "name" : "Linera",
     "version" : "1.0",
-    "description" : "linera-web",
+    "description" : "Linera is a user-focused blockchain protocol based on microchains",
     "permissions": ["sidePanel"],
+    "icons": {
+        "558": "assets/Linera_Black_Mark@2x cropped.png"
+    },
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval';"
     },
-    "options_page": "options.html",
+    "options_page": "src/options/index.html",
     "action": {
-        "default_title": "Linera"
+        "default_icon": "assets/Linera_Black_Mark@2x cropped.png",
+        "default_title": "Linera",
+        "default_popup": "src/popup/index.html"
     },
     "side_panel": {
+        "default_icon": "assets/Linera_Black_Mark@2x cropped.png",
         "default_title": "SIDEBAR TITLE",
-        "default_path": "sidebar.html",
+        "default_path": "src/sidebar/index.html",
         "open_at_install": true
     },
     "content_scripts": [
