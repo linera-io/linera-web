@@ -1,7 +1,7 @@
 {
     "name" : "Linera",
     "version" : "1.0",
-    "description" : "Linera is a user-focused blockchain protocol based on microchains",
+    "description" : "Linera is a user-focused blockchain protocol based on microchains.",
     "permissions": ["sidePanel"],
     "icons": {
         "558": "assets/Linera_Black_Mark@2x cropped.png"
