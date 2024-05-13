@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@shoelace-style/shoelace": "^2.15.0",
     "lit": "^3.1.2",
     "webext-bridge": "^6.0.1"
   },

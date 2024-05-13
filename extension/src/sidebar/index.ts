@@ -1,5 +1,5 @@
-import { LitElement, html, css } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 
 type Wallet = {
   default: string;
@@ -76,6 +76,7 @@ export class Sidebar extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'linera-sidebar': Sidebar
+    'linera-sidebar': Sidebar;
+    'linera-wallet-picker': WalletPicker;
   }
 }
