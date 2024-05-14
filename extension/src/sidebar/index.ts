@@ -1,6 +1,12 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
+import '@shoelace-style/shoelace/dist/components/button/button.js';
+import buttonStyles from '@shoelace-style/shoelace/dist/components/button/button.styles.js';
+import '@/shoelace.ts';
+
+import * as popup from '@/popup';
+
 type Wallet = {
   default: string;
 };
@@ -13,11 +19,17 @@ export class WalletPicker extends LitElement {
     }
 
     label {
-      background-color: var(--color-linera-teal);
-      padding: 0.75em;
-      border-radius: 0.75em;
-      font-weight: bold;
       display: inline-block;
+      position: relative;
+      width: auto;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    ${buttonStyles}
+
+    .button__label {
+      color: var(--color-foreground);
     }
   `;
 
@@ -26,7 +38,7 @@ export class WalletPicker extends LitElement {
 
   render = () => html`
     <form>
-      <label for="wallet">Set wallet…</label>
+      <label class="button button--standard button--primary button--medium button--has-label" for="wallet"><span class="button__label">Set wallet…</span></label>
       <input id="wallet" type="file" accept=".json" @change=${this._onChange}>
     </form>
   `;
@@ -35,6 +47,31 @@ export class WalletPicker extends LitElement {
     console.log("onChange:", this.onChange);
     const contents = await event.target.files![0].text();
     await this.onChange?.(contents);
+  }
+}
+
+@customElement('linera-confirm-button')
+export class ConfirmButton extends LitElement {
+  @property()
+  confirmed?: boolean;
+
+  static styles = css`
+    sl-button::part(label) {
+      color: var(--color-foreground);
+    }
+  `;
+
+  render = () => html`
+    <sl-button @click=${this.confirmSomething} variant="primary">
+      Confirm something
+      ${this.confirmed === true ? '✓'
+        : this.confirmed === false ? '✗'
+        : '' }
+    </sl-button>
+  `;
+
+  private async confirmSomething(_event: Event & { target: HTMLButtonElement }) {
+    this.confirmed = await popup.confirm("Would you like to do something?");
   }
 }
 
@@ -59,6 +96,7 @@ export class Sidebar extends LitElement {
         ? html`<p>Your current wallet is <span class="chain-id">${this.wallet.default}</span>.</p>`
         : html`<p>You don't currently have a wallet selected.</p>`}
       <linera-wallet-picker .onChange=${(wallet: string) => this.onWalletChange(wallet)}></linera-wallet-picker>
+      <linera-confirm-button></linera-confirm-button>
     `;
   }
 

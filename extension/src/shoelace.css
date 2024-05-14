@@ -1,0 +1,64 @@
+:root, :host, .sl-theme-light {
+    --sl-font-sans: var(--font-sans);
+
+    --sl-color-primary-50: var(--color-linera-teal-50);
+    --sl-color-primary-100: var(--color-linera-teal-100);
+    --sl-color-primary-200: var(--color-linera-teal-200);
+    --sl-color-primary-300: var(--color-linera-teal-300);
+    --sl-color-primary-400: var(--color-linera-teal-400);
+    --sl-color-primary-500: var(--color-linera-teal-500);
+    --sl-color-primary-600: var(--color-linera-teal-600);
+    --sl-color-primary-700: var(--color-linera-teal-700);
+    --sl-color-primary-800: var(--color-linera-teal-800);
+    --sl-color-primary-900: var(--color-linera-teal-900);
+    --sl-color-primary-950: var(--color-linera-teal-950);
+
+    --sl-color-neutral-50: var(--color-linera-beige-50);
+    --sl-color-neutral-100: var(--color-linera-beige-100);
+    --sl-color-neutral-200: var(--color-linera-beige-200);
+    --sl-color-neutral-300: var(--color-linera-beige-300);
+    --sl-color-neutral-400: var(--color-linera-beige-400);
+    --sl-color-neutral-500: var(--color-linera-beige-500);
+    --sl-color-neutral-600: var(--color-linera-beige-600);
+    --sl-color-neutral-700: var(--color-linera-beige-700);
+    --sl-color-neutral-800: var(--color-linera-beige-800);
+    --sl-color-neutral-900: var(--color-linera-beige-900);
+    --sl-color-neutral-950: var(--color-linera-beige-950);
+
+    --sl-color-success-50: var(--sl-color-green-50);
+    --sl-color-success-100: var(--sl-color-green-100);
+    --sl-color-success-200: var(--sl-color-green-200);
+    --sl-color-success-300: var(--sl-color-green-300);
+    --sl-color-success-400: var(--sl-color-green-400);
+    --sl-color-success-500: var(--sl-color-green-500);
+    --sl-color-success-600: var(--sl-color-green-600);
+    --sl-color-success-700: var(--sl-color-green-700);
+    --sl-color-success-800: var(--sl-color-green-800);
+    --sl-color-success-900: var(--sl-color-green-900);
+    --sl-color-success-950: var(--sl-color-green-950);
+    --sl-color-warning-50: var(--sl-color-amber-50);
+    --sl-color-warning-100: var(--sl-color-amber-100);
+    --sl-color-warning-200: var(--sl-color-amber-200);
+    --sl-color-warning-300: var(--sl-color-amber-300);
+    --sl-color-warning-400: var(--sl-color-amber-400);
+    --sl-color-warning-500: var(--sl-color-amber-500);
+    --sl-color-warning-600: var(--sl-color-amber-600);
+    --sl-color-warning-700: var(--sl-color-amber-700);
+    --sl-color-warning-800: var(--sl-color-amber-800);
+    --sl-color-warning-900: var(--sl-color-amber-900);
+    --sl-color-warning-950: var(--sl-color-amber-950);
+    --sl-color-danger-50: var(--sl-color-red-50);
+    --sl-color-danger-100: var(--sl-color-red-100);
+    --sl-color-danger-200: var(--sl-color-red-200);
+    --sl-color-danger-300: var(--sl-color-red-300);
+    --sl-color-danger-400: var(--sl-color-red-400);
+    --sl-color-danger-500: var(--sl-color-red-500);
+    --sl-color-danger-600: var(--sl-color-red-600);
+    --sl-color-danger-700: var(--sl-color-red-700);
+    --sl-color-danger-800: var(--sl-color-red-800);
+    --sl-color-danger-900: var(--sl-color-red-900);
+    --sl-color-danger-950: var(--sl-color-red-950);
+
+    --sl-color-neutral-0: hsl(0, 0%, 100%);
+    --sl-color-neutral-1000: hsl(0, 0%, 0%);
+}

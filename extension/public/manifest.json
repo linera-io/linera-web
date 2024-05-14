@@ -4,7 +4,7 @@
     "description" : "Linera is a user-focused blockchain protocol based on microchains.",
     "permissions": ["sidePanel"],
     "icons": {
-        "558": "assets/linera/Linera_Black_Mark@2x cropped.png"
+        "558": "assets/linera/Linera_Red_Mark@2x cropped.png"
     },
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval';"
@@ -12,8 +12,7 @@
     "options_page": "src/options/index.html",
     "action": {
         "default_icon": "assets/linera/Linera_Black_Mark@2x cropped.png",
-        "default_title": "Linera",
-        "default_popup": "src/popup/index.html"
+        "default_title": "Linera"
     },
     "side_panel": {
         "default_icon": "assets/linera/Linera_Black_Mark@2x cropped.png",
