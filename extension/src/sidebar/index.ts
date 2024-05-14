@@ -82,7 +82,7 @@ export class Sidebar extends LitElement {
 
   static styles = css`
     .chain-id {
-      background-color: var(--color-linera-beige);
+      background-color: var(--color-linera-beige-200);
       font-family: monospace;
       overflow-wrap: break-word;
       padding: 3px;
