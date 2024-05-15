@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches:
+      - "**"
+    paths-ignore:
+      - '*.md'
+  workflow_dispatch:
+
+# This allows a subsequently queued workflow run to interrupt previous runs on pull-requests
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.run_id }}'
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUST_BACKTRACE: short
+  # We allow redundant explicit links because `cargo rdme` doesn't know how to resolve implicit intra-crate links.
+  RUSTDOCFLAGS: -A rustdoc::redundant_explicit_links -D warnings
+  # We will re-enable this once the client worker builds without warnings.
+  # RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
+  RUST_LOG: warn
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - uses: cachix/install-nix-action@v26
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - name: Build the client worker
+      run: |
+        cd client-worker
+        nix develop '.?submodules=1' --override-input linera-protocol ../linera-protocol --command wasm-pack build --target web
+    - name: Build the extension
+      run: |
+        cd extension
+        nix develop --override-input linera-protocol ../linera-protocol --command pnpm install
+        nix develop --override-input linera-protocol ../linera-protocol --command pnpm build

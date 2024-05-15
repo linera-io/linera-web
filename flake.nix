@@ -3,10 +3,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
-    linera-protocol = {
-      type = "git";
-      url = "file:linera-protocol?shallow=1&submodules=1";
-    };
+    linera-protocol.url = "path:linera-protocol";
   };
 
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } {
