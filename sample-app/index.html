@@ -3,7 +3,7 @@
     <head>
         <script src="linera.js"></script>
         <script>
-         async function foo() {
+         async function makeQuery() {
              const response = await Linera.sendRequest({
                  'function': 'query',
                  'arguments': [3],
@@ -11,9 +11,17 @@
              console.log('response: ', response);
          }
 
-         foo();
+
+         async function queryValidators() {
+             const response = await Linera.sendRequest({
+                 'function': 'query_validators',
+                 'arguments': [],
+             });
+         }
         </script>
     </head>
     <body>
+        <button onclick="makeQuery()" type="button">Make a query</button>
+        <button onclick="queryValidators()" type="button">Query validators</button>
     </body>
 </html>

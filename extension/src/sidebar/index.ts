@@ -6,10 +6,7 @@ import buttonStyles from '@shoelace-style/shoelace/dist/components/button/button
 import '@/shoelace.ts';
 
 import * as popup from '@/popup';
-
-type Wallet = {
-  default: string;
-};
+import * as messaging from '@/messaging';
 
 @customElement('linera-wallet-picker')
 export class WalletPicker extends LitElement {
@@ -78,7 +75,9 @@ export class ConfirmButton extends LitElement {
 @customElement('linera-sidebar')
 export class Sidebar extends LitElement {
   @state()
-  wallet?: Wallet;
+  wallet?: {
+    default: string;
+  };
 
   static styles = css`
     .chain-id {
@@ -108,6 +107,7 @@ export class Sidebar extends LitElement {
 
   private async onWalletChange(wallet: string) {
     window.localStorage.setItem('wallet', wallet);
+    messaging.callClientFunction('set_wallet', wallet);
     this.wallet = JSON.parse(wallet);
   }
 }
