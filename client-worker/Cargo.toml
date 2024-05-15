@@ -1,0 +1,65 @@
+[package]
+name = "linera-web"
+description = "The Linera Web client"
+version = "0.1.0"
+authors = ["Linera <contact@linera.io>"]
+edition = "2021"
+repository = "https://github.com/linera-io/linera-web/"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+wasm-bindgen-futures = "0.4"
+console_error_panic_hook = "0.1.6"
+anyhow = "1.0.82"
+console_log = "1.0.0"
+log = "0.4.21"
+serde = "1.0.198"
+rand = "0.8.5"
+chrono = "0.4.38"
+serde_json = "1.0.116"
+
+[dependencies.linera-base]
+path = "../linera-protocol/linera-base"
+features = ["web"]
+
+[dependencies.linera-chain]
+path = "../linera-protocol/linera-chain"
+features = ["web"]
+
+[dependencies.linera-core]
+path = "../linera-protocol/linera-core"
+features = ["web"]
+
+# TODO I'm not totally convinced this should be here — used just for
+# some network config that I'm not sure belongs in `linera-execution`
+[dependencies.linera-execution]
+path = "../linera-protocol/linera-execution"
+features = ["web"]
+
+[dependencies.linera-rpc]
+path = "../linera-protocol/linera-rpc"
+features = ["web"]
+
+[dependencies.linera-storage]
+path = "../linera-protocol/linera-storage"
+features = ["web"]
+
+[dependencies.linera-views]
+path = "../linera-protocol/linera-views"
+features = ["web", "indexeddb"]
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "console",
+    "Window",
+]
+
+[dependencies.getrandom]
+version = "*"
+features = ["js"]
