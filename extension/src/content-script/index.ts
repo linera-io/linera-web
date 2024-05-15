@@ -1,6 +1,6 @@
-type RequestEvent = CustomEvent<{id: any; message: any;}>;
+type RequestEvent = CustomEvent<{id: unknown; message: unknown;}>;
 
-function respond(id: any, message: any) {
+function respond(id: unknown, message: unknown) {
     window.dispatchEvent(new CustomEvent("linera-wallet-response", {
         detail: { id, message },
     }))

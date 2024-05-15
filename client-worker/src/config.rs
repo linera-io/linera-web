@@ -1,4 +1,3 @@
-// Copyright (c) Facebook, Inc. and its affiliates.
 // Copyright (c) Zefchain Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -107,27 +106,6 @@ impl WalletState {
         testing_prng_seed: Option<u64>,
     ) -> Result<Self, anyhow::Error> {
         unimplemented!()
-        // let file = OpenOptions::new()
-        //     .create(true)
-        //     .write(true)
-        //     .read(true)
-        //     .open(path)?;
-        // let file_lock = FileLock::new(file, path)?;
-        // let mut reader = BufReader::new(&file_lock.file);
-        // if reader.fill_buf()?.is_empty() {
-        //     Ok(Self {
-        //         inner: Wallet::new(genesis_config, testing_prng_seed),
-        //         wallet_path: path.into(),
-        //         _lock: file_lock,
-        //     })
-        // } else {
-        //     let inner = serde_json::from_reader(reader)?;
-        //     Ok(Self {
-        //         inner,
-        //         wallet_path: path.into(),
-        //         _lock: file_lock,
-        //     })
-        // }
     }
 
     pub fn write(&mut self) -> Result<(), anyhow::Error> {

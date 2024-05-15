@@ -1,4 +1,3 @@
-/// <reference path="./client/linera_web.d.ts" />
 import * as wasm from './client/linera_web.js';
 import initWasm from './client/linera_web.js';
 
@@ -21,7 +20,6 @@ self.addEventListener("activate", async () => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, respond) => {
-  //let fname = message.function as keyof wasm;
   wasm.query.call(null, message.arguments).then(respond);
   return true;
 });

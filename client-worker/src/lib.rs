@@ -167,9 +167,7 @@ impl WalletState {
 #[wasm_bindgen]
 pub async fn query_validators() -> Result<(), JsError> {
     let wallet = WALLET.read()?;
-    let Some(wallet) = wallet.as_ref() else {
-        return Err(JsError::new("no wallet set"));
-    };
+    let wallet = wallet.as_ref().ok_or(JsError::new("no wallet set"))?;
 
     let mut storage = get_storage().await?;
 
