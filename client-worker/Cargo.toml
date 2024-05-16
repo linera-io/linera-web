@@ -33,7 +33,7 @@ features = ["web"]
 
 [dependencies.linera-core]
 path = "../linera-protocol/linera-core"
-features = ["web"]
+features = ["web", "wasmer"]
 
 # TODO I'm not totally convinced this should be here — used just for
 # some network config that I'm not sure belongs in `linera-execution`
@@ -63,3 +63,8 @@ features = [
 [dependencies.getrandom]
 version = "*"
 features = ["js"]
+
+[patch.crates-io.wasmer]
+version = "4.3.0-alpha.1"
+git = "https://github.com/Twey/wasmer"
+branch = "non-send-environments"

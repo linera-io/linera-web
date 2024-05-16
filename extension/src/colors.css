@@ -1,0 +1,31 @@
+:root {
+    --color-linera-red: hsl(10, 100%, 50%);
+    --color-linera-blue: hsl(198, 55%, 12%);
+    --color-linera-teal: hsl(179, 54%, 64%);
+    --color-linera-beige: hsl(35, 45%, 71%);
+    --color-linera-white: hsl(0, 0%, 100%);
+
+    --color-linera-teal-50: hsl(179, 54%, 95%);
+    --color-linera-teal-100: hsl(179, 54%, 92%);
+    --color-linera-teal-200: hsl(179, 54%, 85%);
+    --color-linera-teal-300: hsl(179, 54%, 78%);
+    --color-linera-teal-400: hsl(179, 54%, 71%);
+    --color-linera-teal-500: hsl(179, 54%, 64%);
+    --color-linera-teal-600: hsl(179, 54%, 51%);
+    --color-linera-teal-700: hsl(179, 54%, 38%);
+    --color-linera-teal-800: hsl(179, 54%, 25%);
+    --color-linera-teal-900: hsl(179, 54%, 12%);
+    --color-linera-teal-950: hsl(179, 54%, 5%);
+
+    --color-linera-beige-50: hsl(35, 45%, 90%);
+    --color-linera-beige-100: hsl(35, 45%, 87%);
+    --color-linera-beige-200: hsl(35, 45%, 83%);
+    --color-linera-beige-300: hsl(35, 45%, 79%);
+    --color-linera-beige-400: hsl(35, 45%, 75%);
+    --color-linera-beige-500: hsl(35, 45%, 71%);
+    --color-linera-beige-600: hsl(35, 45%, 57%);
+    --color-linera-beige-700: hsl(35, 45%, 44%);
+    --color-linera-beige-800: hsl(35, 45%, 31%);
+    --color-linera-beige-900: hsl(35, 45%, 18%);
+    --color-linera-beige-950: hsl(35, 45%, 10%);
+}
