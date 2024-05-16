@@ -6,7 +6,7 @@ export async function confirm(question: string): Promise<boolean> {
   const windowId = (await chrome.windows.getCurrent()).id;
   if (windowId === undefined) return false;
 
-  console.log("Confirming:", question);
+  console.log('Confirming:', question);
 
   // If Vite sees `new URL(<string literal>)` it will replace it with
   // a dynamic URL to the page as an asset.  This would be fine except
@@ -25,14 +25,14 @@ export async function confirm(question: string): Promise<boolean> {
   let response: Promise<boolean> = new Promise(resolve => {
     const listener: MessageListener<ConfirmResponse> = (message, sender, _sendResponse) => {
       if (
-        message.type === "confirm_response"
+        message.type === 'confirm_response'
         && message.requestId === requestId
         && sender.origin === window.location.origin
       ) {
         chrome.runtime.onMessage.removeListener(listener);
         resolve(message.response);
       } else {
-        console.log("No", { documentOrigin: window.location.origin, senderOrigin: sender.origin });
+        console.log('No', { documentOrigin: window.location.origin, senderOrigin: sender.origin });
       }
 
       return false;

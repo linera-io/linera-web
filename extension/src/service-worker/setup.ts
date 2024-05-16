@@ -10,13 +10,13 @@ chrome.sidePanel.setPanelBehavior({
 chrome.runtime.onInstalled.addListener(async () => {
   const windowId = (await chrome.windows.getCurrent()).id;
   if (windowId === undefined) return;
-  chrome.action.setPopup({ popup: "src/popup/welcome.html" });
+  chrome.action.setPopup({ popup: 'src/popup/welcome.html' });
   await chrome.action.openPopup({ windowId });
 });
 
-self.addEventListener("activate", async () => {
+self.addEventListener('activate', async () => {
   await initWasm((await fetch(wasmModuleUrl)).arrayBuffer());
-  console.log("query: ", await wasm.query(12));
+  console.log('query: ', await wasm.query(12));
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, respond) => {

@@ -14,7 +14,7 @@ type Wallet = {
 @customElement('linera-wallet-picker')
 export class WalletPicker extends LitElement {
   static styles = css`
-    input[type="file"] {
+    input[type='file'] {
       display: none;
     }
 
@@ -38,13 +38,13 @@ export class WalletPicker extends LitElement {
 
   render = () => html`
     <form>
-      <label class="button button--standard button--primary button--medium button--has-label" for="wallet"><span class="button__label">Set wallet…</span></label>
-      <input id="wallet" type="file" accept=".json" @change=${this._onChange}>
+      <label class='button button--standard button--primary button--medium button--has-label' for='wallet'><span class='button__label'>Set wallet…</span></label>
+      <input id='wallet' type='file' accept='.json' @change=${this._onChange}>
     </form>
   `;
 
   private async _onChange(event: Event & { target: HTMLInputElement }) {
-    console.log("onChange:", this.onChange);
+    console.log('onChange:', this.onChange);
     const contents = await event.target.files![0].text();
     await this.onChange?.(contents);
   }
@@ -62,7 +62,7 @@ export class ConfirmButton extends LitElement {
   `;
 
   render = () => html`
-    <sl-button @click=${this.confirmSomething} variant="primary">
+    <sl-button @click=${this.confirmSomething} variant='primary'>
       Confirm something
       ${this.confirmed === true ? '✓'
         : this.confirmed === false ? '✗'
@@ -71,7 +71,7 @@ export class ConfirmButton extends LitElement {
   `;
 
   private async confirmSomething(_event: Event & { target: HTMLButtonElement }) {
-    this.confirmed = await popup.confirm("Would you like to do something?");
+    this.confirmed = await popup.confirm('Would you like to do something?');
   }
 }
 
@@ -93,7 +93,7 @@ export class Sidebar extends LitElement {
     return html`
       <h2>Wallet</h2>
       ${this.wallet
-        ? html`<p>Your current wallet is <span class="chain-id">${this.wallet.default}</span>.</p>`
+        ? html`<p>Your current wallet is <span class='chain-id'>${this.wallet.default}</span>.</p>`
         : html`<p>You don't currently have a wallet selected.</p>`}
       <linera-wallet-picker .onChange=${(wallet: string) => this.onWalletChange(wallet)}></linera-wallet-picker>
       <linera-confirm-button></linera-confirm-button>
@@ -102,12 +102,12 @@ export class Sidebar extends LitElement {
 
   constructor() {
     super();
-    let wallet = window.localStorage.getItem("wallet");
+    let wallet = window.localStorage.getItem('wallet');
     if (wallet) this.wallet = JSON.parse(wallet);
   }
 
   private async onWalletChange(wallet: string) {
-    window.localStorage.setItem("wallet", wallet);
+    window.localStorage.setItem('wallet', wallet);
     this.wallet = JSON.parse(wallet);
   }
 }

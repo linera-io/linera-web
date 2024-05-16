@@ -12,7 +12,7 @@ export class Logo extends LitElement {
   `;
 
   render = () => html`
-    <img src="${lineraLogo}" alt="Linera" />
+    <img src='${lineraLogo}' alt='Linera' />
   `;
 }
 

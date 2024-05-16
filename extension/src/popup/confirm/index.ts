@@ -31,20 +31,20 @@ export class ConfirmationForm extends LitElement {
   constructor() {
     super();
     const params = new URLSearchParams(window.location.search);
-    this.question = params.get("question")!;
-    this.requestId = params.get("requestId")!;
+    this.question = params.get('question')!;
+    this.requestId = params.get('requestId')!;
   }
 
   render = () => html`
     <p>${this.question}</p>
     <sl-button-group>
       <sl-button @click=${async () => this.respond(false)}>No</sl-button>
-      <sl-button variant="primary" @click=${async () => this.respond(true)}>Yes</sl-button>
+      <sl-button variant='primary' @click=${async () => this.respond(true)}>Yes</sl-button>
     </sl-button-group>
   `;
 
   private async respond(response: boolean): Promise<void> {
-    chrome.runtime.sendMessage({ type: "confirm_response", requestId: this.requestId, response });
+    chrome.runtime.sendMessage({ type: 'confirm_response', requestId: this.requestId, response });
     window.close();
   }
 }

@@ -4,7 +4,7 @@ export type Message = {
 };
 
 export type ConfirmResponse = Message & {
-  type: "confirm_response";
+  type: 'confirm_response';
   response: boolean;
 };
 
