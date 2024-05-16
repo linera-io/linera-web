@@ -1,3 +1,14 @@
+/**
+This module defines the client API for the Web extension.
+
+Exported (marked with `#[wasm_bindgen]`) functions will be callable from the extension frontend.
+
+Exported functions prefixed with `dapp_` _will additionally be
+callable from all Web pages to which the Web client has been
+connected_.  Outside of their type, which is checked at call time,
+arguments to these functions cannot be trusted and _must_ be verified!
+*/
+
 use linera_base::{
     crypto::{CryptoRng, CryptoHash, KeyPair, PublicKey},
     data_types::{Amount, BlockHeight, Timestamp},
@@ -165,7 +176,7 @@ impl WalletState {
 }
 
 #[wasm_bindgen]
-pub async fn query_validators() -> Result<(), JsError> {
+pub async fn dapp_query_validators() -> Result<(), JsError> {
     let wallet = WALLET.read()?;
     let wallet = wallet.as_ref().ok_or(JsError::new("no wallet set"))?;
 
@@ -219,7 +230,7 @@ pub async fn set_wallet(wallet: &str) -> Result<(), wasm_bindgen::JsError> {
 }
 
 #[wasm_bindgen]
-pub async fn query(n: u32) -> u32 {
+pub async fn dapp_query(n: u32) -> u32 {
     n + 1
 }
 
