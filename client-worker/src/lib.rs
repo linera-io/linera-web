@@ -91,6 +91,7 @@ impl ClientContext {
             chain.timestamp,
             chain.next_block_height,
             chain.pending_block.clone(),
+            chain.pending_blobs.clone(),
         )
     }
 
@@ -108,6 +109,7 @@ impl ClientContext {
                 timestamp,
                 next_block_height: BlockHeight::ZERO,
                 pending_block: None,
+                pending_blobs: BTreeMap::default(),
             });
         }
     }

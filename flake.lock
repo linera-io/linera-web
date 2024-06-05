@@ -82,17 +82,14 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1715784324,
+        "lastModified": 1,
         "narHash": "sha256-G7I7bdzkHd3MvK2HJ2Wic1Q7EN70Fr/lo1SSY6nBmF0=",
-        "ref": "91b1bb47ec7f69a915846f985948ee07726e8ecc",
-        "rev": "91b1bb47ec7f69a915846f985948ee07726e8ecc",
-        "revCount": 3136,
-        "type": "git",
-        "url": "file:linera-protocol?shallow=1&submodules=1"
+        "path": "linera-protocol",
+        "type": "path"
       },
       "original": {
-        "type": "git",
-        "url": "file:linera-protocol?shallow=1&submodules=1"
+        "path": "linera-protocol",
+        "type": "path"
       }
     },
     "nixpkgs": {
