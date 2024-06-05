@@ -1,4 +1,4 @@
-# <img src="https://github.com/linera-io/linera-protocol/assets/1105398/fe08c941-93af-4114-bb83-bcc0eaec95f9" width="250" height="90" />
+<img src="extension/public/assets/linera/Linera_FullColor_H.svg" width="250" />
 
 # Linera Web client
 
