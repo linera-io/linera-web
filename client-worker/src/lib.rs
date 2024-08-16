@@ -17,8 +17,6 @@ use linera_core::node::{
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
-use std::sync::RwLock;
-
 use linera_client::{chain_listener::ClientContext as _, client_options::ClientOptions, wallet::Wallet};
 
 // TODO convert to IndexedDbStore once we refactor Context
@@ -81,24 +79,17 @@ pub const OPTIONS: ClientOptions = ClientOptions {
     tokio_threads: Some(1),
 };
 
-pub async fn get_client_context(wallet: &Wallet) -> Result<ClientContext, JsError> {
+pub async fn get_client_context() -> Result<ClientContext, JsError> {
+    let wallet = linera_client::config::WalletState::read_from_local_storage("linera-wallet")?;
     let mut storage = get_storage().await?;
     wallet.genesis_config().initialize_storage(&mut storage).await?;
-    Ok(ClientContext::new(get_storage().await?, OPTIONS, OPTIONS.wallet()?))
+    Ok(ClientContext::new(get_storage().await?, OPTIONS, wallet))
 }
 
 #[wasm_bindgen]
 pub async fn dapp_query_validators() -> Result<(), JsError> {
-    let wallet = WALLET.read()?;
-    let wallet = wallet.as_ref().ok_or(JsError::new("no wallet set"))?;
-
-    let mut storage = get_storage().await?;
-
-    wallet.genesis_config().initialize_storage(&mut storage).await?;
-
-    let chain_id = wallet.default_chain().expect("No default chain");
-
-    let mut client_context: ClientContext = get_client_context(wallet).await?;
+    let mut client_context: ClientContext = get_client_context().await?;
+    let chain_id = client_context.wallet().default_chain().expect("No default chain");
 
     let mut chain_client = client_context.make_chain_client(chain_id);
     log::info!(
@@ -133,11 +124,9 @@ pub async fn dapp_query_validators() -> Result<(), JsError> {
     Ok(())
 }
 
-static WALLET: RwLock<Option<Wallet>> = RwLock::new(None);
-
 #[wasm_bindgen]
 pub async fn set_wallet(wallet: &str) -> Result<(), wasm_bindgen::JsError> {
-    *WALLET.write()? = serde_json::from_str(wallet)?;
+    linera_client::config::WalletState::create_from_local_storage("linera-wallet", serde_json::from_str(wallet)?)?;
     Ok(())
 }
 
