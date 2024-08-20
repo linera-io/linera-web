@@ -64,11 +64,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1723282050,
-        "narHash": "sha256-SoZn4OGKPGh4XlN7WZ+y0SX87hY1k2kvzTEjoF3VLzs=",
-        "ref": "fde6dc46fe0166ccac61b80610c0a09c476df25e",
-        "rev": "fde6dc46fe0166ccac61b80610c0a09c476df25e",
-        "revCount": 3347,
+        "lastModified": 1724081102,
+        "narHash": "sha256-/uXnOhD/AXBYXSqeuTtY8f/D0EiUtz5HO+k3xtXunZY=",
+        "ref": "refs/heads/08-19-Browser_chain_listener",
+        "rev": "a0c8278c10777d8418caf46e923beddd349c666c",
+        "revCount": 3358,
         "type": "git",
         "url": "file:///home/twey/dev/linera/web/main/linera-protocol"
       },
@@ -167,11 +167,11 @@
     },
     "nixpkgs_5": {
       "locked": {
-        "lastModified": 1723175592,
-        "narHash": "sha256-M0xJ3FbDUc4fRZ84dPGx5VvgFsOzds77KiBMW/mMTnI=",
+        "lastModified": 1723991338,
+        "narHash": "sha256-Grh5PF0+gootJfOJFenTTxDTYPidA3V28dqJ/WV7iis=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "5e0ca22929f3342b19569b21b2f3462f053e497b",
+        "rev": "8a3354191c0d7144db9756a74755672387b702ba",
         "type": "github"
       },
       "original": {
