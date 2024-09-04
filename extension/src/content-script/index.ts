@@ -10,7 +10,10 @@ function respond(id: unknown, message: unknown) {
 
 window.addEventListener('linera-wallet-request', async e => {
   const event = e as RequestEvent;
-  respond(event.detail.id, await chrome.runtime.sendMessage(event.detail.message));
+  console.log('Got wallet request', event.detail);
+  const response = await chrome.runtime.sendMessage(event.detail.message);
+  console.log('Got wallet response', response);
+  respond(event.detail.id, response);
 });
 
 window.dispatchEvent(new Event('linera-wallet-loaded'));

@@ -11,33 +11,81 @@ chrome.sidePanel.setPanelBehavior({
 chrome.runtime.onInstalled.addListener(async () => {
   const windowId = (await chrome.windows.getCurrent()).id;
   if (windowId === undefined) return;
-  chrome.action.setPopup({ popup: "src/popup/welcome.html" });
+  chrome.action.setPopup({ popup: 'src/popup/welcome.html' });
   await chrome.action.openPopup({ windowId });
 });
 
-self.addEventListener("activate", async () => {
-  await initWasm((await fetch(wasmModuleUrl)).arrayBuffer());
-  console.log("Client worker initialized");
-});
 
-chrome.runtime.onMessage.addListener((message: messaging.CallRequest, sender, respond) => {
-  let functionName = message.function;
+let client: wasm.Client | undefined;
+let wallet: string | undefined;
 
-  if (sender.origin === self.location.origin) {
-    console.log("Received message from extension", message);
+const init = (async () => {
+  await initWasm({module_or_path: (await fetch(wasmModuleUrl)).arrayBuffer()});
+
+  let wallet = await wasm.Wallet.read();
+
+  if (wallet) {
+    client = await new wasm.Client(wallet);
+    console.log('Client initialized from storage');
   } else {
-    console.log("Received message from content script", message);
-    functionName = "dapp_" + functionName;
+    console.log('No wallet available in storage');
+  }
+})();
+
+async function setWallet(message: messaging.SetWalletRequest) {
+  await init;
+  
+  console.log('Destroying old client');
+  client = undefined;
+  console.log('Creating new client');
+  client = await new wasm.Client(await wasm.Wallet.create(wallet = message.wallet));
+  console.log('New client created');
+}
+
+async function clientCall(message: messaging.CallRequest, sender: chrome.runtime.MessageSender): Promise<any> {
+  if (!client) {
+    console.warn('Client worker not yet initialized');
+    return;
   }
 
-  if (!(functionName in wasm)) {
-    console.error("Attempted to call undefined function", functionName);
+  const functionName = message.function;
+
+  let target;
+  if (sender.origin === self.location.origin) {
+    console.log('Received message from extension', message);
+    target = client;
+  } else {
+    console.log('Received message from content script', message);
+    target = client.frontend();
+  }
+
+  if (!(functionName in target)) {
+    console.error('Attempted to call undefined function', functionName);
+    return;
+  }
+
+  let func = target[functionName as keyof typeof target] as (...args: any) => Promise<any>;
+
+  return await func.apply(target, message.arguments);
+}
+
+chrome.runtime.onMessage.addListener((message: messaging.Request, sender, respond) => {
+  console.log('Got message', JSON.stringify(message));
+  if (messaging.isSetWalletRequest(message)) {
+    setWallet(message);
+    respond(undefined);
+    return false;
+  } else if (messaging.isCallRequest(message)) {
+    clientCall(message, sender).then(respond);
+    return true;
+  } else if (messaging.isGetWalletRequest(message)) {
+    respond(wallet);
+    return false;
+  } else {
+    console.warn('Unknown message', message);
+    respond(undefined);
     return false;
   }
 
-  let func = wasm[functionName as keyof typeof wasm] as (...args: any) => any;
-
-  func.apply(wasm, message.arguments).then(respond);
-
-  return true;
+  return false;
 });

@@ -3,20 +3,9 @@
     <head>
         <script src="linera.js"></script>
         <script>
-         async function makeQuery() {
-             const response = await Linera.sendRequest({
-                 'function': 'query',
-                 'arguments': [3],
-             });
-             console.log('response: ', response);
-         }
-
-
          async function queryValidators() {
-             const response = await Linera.sendRequest({
-                 'function': 'query_validators',
-                 'arguments': [],
-             });
+             const response = await Linera.callClientFunction('validator_version_info');
+             console.log(response);
          }
         </script>
     </head>
