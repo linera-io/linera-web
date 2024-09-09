@@ -64,28 +64,26 @@ async function clientCall(message: messaging.CallRequest, sender: chrome.runtime
     return;
   }
 
-  let func = target[functionName as keyof typeof target] as (...args: any) => Promise<any>;
+  const func = target[functionName as keyof typeof target] as (...args: any) => Promise<any>;
 
-  return await func.apply(target, message.arguments);
+  console.log('Calling function', functionName);
+
+  const result = await func.apply(target, message.arguments);
+  console.log('Got result', result);
+  return result;
 }
 
 chrome.runtime.onMessage.addListener((message: messaging.Request, sender, respond) => {
   console.log('Got message', JSON.stringify(message));
-  if (messaging.isSetWalletRequest(message)) {
-    setWallet(message);
-    respond(undefined);
-    return false;
-  } else if (messaging.isCallRequest(message)) {
+  if (messaging.isCallRequest(message)) {
     clientCall(message, sender).then(respond);
     return true;
-  } else if (messaging.isGetWalletRequest(message)) {
+  } else if (messaging.isSetWalletRequest(message))
+    setWallet(message);
+  else if (messaging.isGetWalletRequest(message))
     respond(wallet);
-    return false;
-  } else {
+  else
     console.warn('Unknown message', message);
-    respond(undefined);
-    return false;
-  }
 
   return false;
 });
