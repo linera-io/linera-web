@@ -7,10 +7,16 @@
              const response = await Linera.callClientFunction('validator_version_info');
              console.log(response);
          }
+
+         async function queryApplication() {
+             const response = await Linera.callClientFunction('query_application', '95e7dee915d2e3d12cf12715cbbeabf316fc607d55efc9c27f0a2114011a972291aa75c29eca77148df5a49cdc4c8c9802027220c411930b8e566d10e88942d8e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000', 'query { value }')
+             console.log(response);
+         }
         </script>
     </head>
     <body>
         <button onclick="makeQuery()" type="button">Make a query</button>
         <button onclick="queryValidators()" type="button">Query validators</button>
+        <button onclick="queryApplication()" type="button">Query application</button>
     </body>
 </html>
