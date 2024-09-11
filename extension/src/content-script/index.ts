@@ -1,6 +1,6 @@
 /* TODO make this conform to https://github.com/wallet-standard/wallet-standard/ */
 
-type RequestEvent = CustomEvent<{id: unknown; message: unknown;}>;
+type RequestEvent = CustomEvent<{id: unknown; message: any;}>;
 
 function respond(id: unknown, message: unknown) {
     window.dispatchEvent(new CustomEvent('linera-wallet-response', {
@@ -10,9 +10,9 @@ function respond(id: unknown, message: unknown) {
 
 window.addEventListener('linera-wallet-request', async e => {
   const event = e as RequestEvent;
-  console.log('Got wallet request', event.detail);
-  const response = await chrome.runtime.sendMessage(event.detail.message);
-  console.log('Got wallet response', response);
+  let message = event.detail.message;
+  message.target = 'wallet';
+  const response = await chrome.runtime.sendMessage(message);
   respond(event.detail.id, response);
 });
 
