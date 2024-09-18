@@ -5,12 +5,14 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     sourcemap: true,
+    assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         'confirm-popup': resolve(__dirname, 'src/popup/confirm/index.html'),
         'welcome-popup': resolve(__dirname, 'src/popup/welcome.html'),
         'sidebar': resolve(__dirname, 'src/sidebar/index.html'),
         'options': resolve(__dirname, 'src/options/index.html'),
+        'offscreen': resolve(__dirname, 'src/service-web-worker/offscreen/index.html'),
         'content-script': resolve(__dirname, 'src/content-script/index.ts'),
         'service-worker': resolve(__dirname, 'src/service-worker/index.ts'),
       },

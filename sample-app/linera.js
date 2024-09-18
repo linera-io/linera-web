@@ -14,23 +14,30 @@ const Linera = (() => {
     let nextMessageId = 0;
     let responses = new Map();
 
+    async function sendRequest(request) {
+        await loaded;
+
+        return await new Promise(resolve => {
+            responses.set(nextMessageId, resolve);
+            window.dispatchEvent(new CustomEvent(
+                "linera-wallet-request",
+                {
+                    detail: {
+                        id: nextMessageId++,
+                        message: request,
+                    },
+                },
+            ));
+        });
+    }
+
     return {
         load: async () => await loaded,
-        sendRequest: async request => {
-            await loaded;
-
-            return new Promise(resolve => {
-                responses.set(nextMessageId, resolve);
-                window.dispatchEvent(new CustomEvent(
-                    "linera-wallet-request",
-                    {
-                        detail: {
-                            id: nextMessageId,
-                            message: request,
-                        },
-                    },
-                ));
-            });
-        },
+        sendRequest,
+        callClientFunction: async (func, ...args) => await sendRequest({
+            type: 'client_call',
+            function: func,
+            arguments: args,
+        }),
     };
 })();

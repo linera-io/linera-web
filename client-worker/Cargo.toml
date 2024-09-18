@@ -11,17 +11,21 @@ license = "Apache-2.0"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-wasm-bindgen = "0.2"
-js-sys = "0.3"
-wasm-bindgen-futures = "0.4"
-console_error_panic_hook = "0.1.6"
 anyhow = "1.0.82"
-console_log = "1.0.0"
-log = "0.4.21"
-serde = "1.0.198"
-rand = "0.8.5"
 chrono = "0.4.38"
+console_error_panic_hook = "0.1.6"
+console_log = "1.0.0"
+futures = "0.3.30"
+js-sys = "0.3"
+log = "0.4.21"
+rand = "0.8.5"
+serde = "1.0.198"
+serde-wasm-bindgen = "0.6.5"
 serde_json = "1.0.116"
+tokio = "1.40.0"
+tracing = "0.1.40"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
 
 [dependencies.linera-base]
 path = "../linera-protocol/linera-base"
@@ -34,17 +38,15 @@ features = ["web"]
 [dependencies.linera-client]
 path = "../linera-protocol/linera-client"
 default-features = false
-features = ["web", "local-storage"]
+features = ["web", "indexed-db"]
 
 [dependencies.linera-core]
 path = "../linera-protocol/linera-core"
 features = ["web", "wasmer"]
 
-# TODO I'm not totally convinced this should be here — used just for
-# some network config that I'm not sure belongs in `linera-execution`
 [dependencies.linera-execution]
 path = "../linera-protocol/linera-execution"
-features = ["web"]
+features = ["web", "wasmer"]
 
 [dependencies.linera-rpc]
 path = "../linera-protocol/linera-rpc"
