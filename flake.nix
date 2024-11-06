@@ -12,10 +12,10 @@
       {
         devShells.default = pkgs.mkShell {
           inputsFrom = [
-            inputs'.linera-protocol.devShells.default
+            inputs'.linera-protocol.devShells.nightly
           ];
-          shellHook = inputs'.linera-protocol.devShells.default.shellHook;
-          nativeBuildInputs = [ pkgs.nodePackages.pnpm ];
+          shellHook = inputs'.linera-protocol.devShells.nightly.shellHook;
+          nativeBuildInputs = with pkgs; [ nodePackages.pnpm wasm-bindgen-cli binaryen yq ];
         };
       };
   };
