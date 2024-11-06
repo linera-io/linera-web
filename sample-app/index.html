@@ -3,25 +3,21 @@
     <head>
         <script src="linera.js"></script>
         <script>
-         async function makeQuery() {
-             const response = await Linera.sendRequest({
-                 'function': 'query',
-                 'arguments': [3],
-             });
-             console.log('response: ', response);
+         async function queryValidators() {
+             const response = await Linera.callClientFunction('validator_version_info');
+             console.log(response);
          }
 
-
-         async function queryValidators() {
-             const response = await Linera.sendRequest({
-                 'function': 'query_validators',
-                 'arguments': [],
-             });
+         async function queryApplication() {
+             const COUNTER_APP_ID = '95ad45ed433db1e40c9e5f677e9e1369fa4c207aeae67098ae668a2fdf241328557f90979fe8f4ef93225c8b3a9e5c9afb1e31884cd092e4ee1bdb5be90dcd0ee476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000';
+             const response = await Linera.callClientFunction('query_application', COUNTER_APP_ID, '{ "query": "query { value }" }');
+             console.log(JSON.parse(response));
          }
         </script>
     </head>
     <body>
         <button onclick="makeQuery()" type="button">Make a query</button>
         <button onclick="queryValidators()" type="button">Query validators</button>
+        <button onclick="queryApplication()" type="button">Query application</button>
     </body>
 </html>
