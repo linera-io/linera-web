@@ -174,7 +174,7 @@ impl Frontend {
     pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
         let mut client_context = self.0.client_context.lock().await;
         let chain_id = client_context.wallet().default_chain().expect("No default chain");
-        let chain_client = self.0.client_context.lock().await.make_chain_client(chain_id)?;
+        let chain_client = client_context.make_chain_client(chain_id)?;
         chain_client.synchronize_from_validators().await?;
         let result = chain_client.local_committee().await;
         client_context.update_and_save_wallet(&chain_client).await?;
@@ -190,14 +190,13 @@ impl Frontend {
                 .await
             {
                 Ok(version_info) => if validator_versions.insert(name, version_info.clone()).is_some() {
-                    log::warn!("duplicate validator entry for validator {name:?}");
+                    tracing::warn!("duplicate validator entry for validator {name:?}");
                 }
                 Err(e) => {
-                    log::warn!("failed to get version information for validator {name:?}:\n{e:?}")
+                    tracing::warn!("failed to get version information for validator {name:?}:\n{e:?}")
                 }
             }
         }
-
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 

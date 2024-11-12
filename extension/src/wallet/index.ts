@@ -1,7 +1,7 @@
-import * as wasm from './client/linera_web.js';
-import type { Client } from './client/linera_web.js';
+import * as wasm from '@/client';
+import type { Client } from '@/client';
 
-import wasmModuleUrl from './client/linera_web_bg.wasm?url';
+import wasmModuleUrl from '@linera/client/pkg/linera_web_bg.wasm?url';
 import * as guard from './message.guard';
 
 export class Server {
@@ -9,7 +9,8 @@ export class Server {
 
   async setWallet(wallet: string) {
     this.wallet = wallet;
-    this.client = await new (await wasm).Client(await (await wasm).Wallet.create(wallet));
+    await wasm;
+    this.client = await new wasm.Client(await wasm.Wallet.create(wallet));
   }
 
   async callClientFunction(sender: chrome.runtime.MessageSender, functionName: string, ...args: any): Promise<any> {

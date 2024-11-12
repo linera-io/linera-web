@@ -1,24 +1,28 @@
 {
-  "name": "linera-web",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@shoelace-style/shoelace": "^2.16.0",
-    "lit": "^3.2.0",
-    "randomstring": "^1.3.0",
-    "webext-bridge": "^6.0.1"
-  },
-  "devDependencies": {
-    "@types/chrome": "^0.0.267",
-    "@types/randomstring": "^1.3.0",
-    "ts-auto-guard": "^5.0.1",
-    "typescript": "^5.6.2",
-    "vite": "^5.4.5"
-  }
+    "name": "@linera/extension",
+    "version": "0.0.0",
+    "type": "module",
+    "browser": "dist/library/linera.js",
+    "scripts": {
+        "dev": "vite",
+        "build:extension": "tsc && vite build -c extension.vite.config.js",
+        "build:library": "tsc && vite build -c library.vite.config.js",
+        "build": "$npm_execpath build:extension && $npm_execpath build:library",
+        "preview": "vite preview",
+        "prepare": "$npm_execpath build:library"
+    },
+    "dependencies": {
+        "@shoelace-style/shoelace": "^2.16.0",
+        "lit": "^3.2.0",
+        "randomstring": "^1.3.0",
+        "webext-bridge": "^6.0.1",
+        "@linera/client": "workspace:^"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.267",
+        "@types/randomstring": "^1.3.0",
+        "ts-auto-guard": "^5.0.1",
+        "typescript": "^5.6.2",
+        "vite": "^5.4.5"
+    }
 }
