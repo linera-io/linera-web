@@ -3,13 +3,21 @@ declare global {
       'linera-wallet-loaded': CustomEvent;
       'linera-wallet-request': CustomEvent;
       'linera-wallet-response': CustomEvent;
+      'linera-wallet-notification': CustomEvent;
     }
 }
 
-let loaded = new Promise<void>(resolve => {
+const loaded = new Promise<void>(resolve => {
   window.addEventListener("linera-wallet-response", e => {
     responses.get(e.detail.id)?.(e.detail.message);
     return false;
+  });
+
+  window.addEventListener('linera-wallet-notification', e => {
+    console.log('User library got notification');
+    for (const handler of notificationHandlers) {
+      handler(e.detail);
+    }
   });
 
   function listener() {
@@ -50,4 +58,10 @@ export async function callClientFunction(func: string, ...args: any): Promise<an
     function: func,
     arguments: args,
   });
+}
+
+let notificationHandlers: ((notification: any) => void)[] = [];
+
+export function onNotification(handler: (notification: any) => void) {
+  notificationHandlers.push(handler);
 }

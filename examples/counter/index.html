@@ -2,32 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Lit + TS</title>
-    <link rel="stylesheet" href="./src/index.css" />
+    <title>Linera counter example</title>
     <script type="module">
      import * as linera from '@linera/extension';
+     const COUNTER_APP_ID = '39b3fce7e42baa0f40f675a4f09cfda5ab86aabc07c80893cbe6895eef6edc770503ecc314a7ad41bd7a04f63e6448f1f66e0946ee2046f4341d14e8c2f591d9e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000';
 
-     async function queryValidators() {
-         const response = await linera.callClientFunction('validator_version_info');
-         console.log(response);
+     window.incrementCount = async function incrementCount() {
+         await linera.callClientFunction('mutate_application', COUNTER_APP_ID, '{ "query": "mutation { increment(value: 1) }" }');
      }
 
-     async function queryApplication() {
-         const COUNTER_APP_ID = '39b3fce7e42baa0f40f675a4f09cfda5ab86aabc07c80893cbe6895eef6edc770503ecc314a7ad41bd7a04f63e6448f1f66e0946ee2046f4341d14e8c2f591d9e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000';
+     async function updateCount() {
          const response = await linera.callClientFunction('query_application', COUNTER_APP_ID, '{ "query": "query { value }" }');
-         console.log(JSON.parse(response));
+         document.getElementById('clicks').innerText = JSON.parse(response).data.value;
      }
 
-     window.queryValidators = queryValidators;
+     linera.onNotification(_notification => updateCount());
 
-     window.queryApplication = queryApplication;
+     linera.load().then(updateCount);
     </script>
   </head>
   <body>
-    <button onclick="makeQuery()" type="button">Make a query</button>
-    <button onclick="queryValidators()" type="button">Query validators</button>
-    <button onclick="queryApplication()" type="button">Query application</button>
+    <section>
+      <h1>Clicks: <span id="clicks"></h1>
+    </section>
+    <section>
+      <button onclick="incrementCount()" type="button">Click me!</button>
+    </section>
   </body>
 </html>
