@@ -28,7 +28,7 @@ use linera_base::identifiers::{ApplicationId, ChainId};
 use linera_client::{chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _}, client_options::ClientOptions, wallet::Wallet};
 
 use std::{collections::HashMap, sync::Arc};
-use futures::lock::Mutex as AsyncMutex;
+use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
 
 use linera_views::store::WithError;
 
@@ -111,6 +111,7 @@ pub struct Client {
 /// frontends.  The API here is directly exposed to random Web pages
 /// on the Internet, and so calls should not be trusted.
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct Frontend(Client);
 
 #[wasm_bindgen]
@@ -156,6 +157,25 @@ impl Client {
     }
 
     #[wasm_bindgen]
+    pub fn on_notification(&self, handler: js_sys::Function) -> Result<(), JsError> {
+        let this = self.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let mut notifications = this.default_chain_client().await.unwrap_throw().subscribe().await.unwrap_throw();
+            while let Some(notification) = notifications.next().await {
+                tracing::debug!("received notification: {notification:?}");
+                handler.call1(&JsValue::null(), &serde_wasm_bindgen::to_value(&notification).unwrap_throw()).unwrap_throw();
+            }
+        });
+        Ok(())
+    }
+
+    async fn default_chain_client(&self) -> Result<ChainClient, JsError> {
+        let client_context = self.client_context.lock().await;
+        let chain_id = client_context.wallet().default_chain().expect("No default chain");
+        Ok(client_context.make_chain_client(chain_id)?)
+    }
+
+    #[wasm_bindgen]
     pub fn frontend(&self) -> Frontend {
         Frontend(self.clone())
     }
@@ -197,23 +217,63 @@ impl Frontend {
                 }
             }
         }
+
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 
     #[wasm_bindgen]
     // TODO use bytes here not strings
-    pub async fn query_application(&self, application_id: JsValue, query: &str) -> Result<String, JsError> {
-        let chain_id = self.0.client_context.lock().await.wallet().default_chain().expect("there should be a default chain");
-        let application_id = serde_wasm_bindgen::from_value(application_id)?;
-        let chain_client = self.0.client_context.lock().await.make_chain_client(chain_id)?;
+    // TODO a lot of this logic is shared with `linera_service::node_service`
+    pub async fn query_application(&self, application_id: &str, query: &str) -> Result<String, JsError> {
+        let chain_client = self.0.default_chain_client().await?;
         let response = chain_client.query_application(linera_execution::Query::User {
-            application_id,
+            application_id: application_id.parse()?,
             bytes: query.as_bytes().to_vec(),
         }).await?;
         let linera_execution::Response::User(response) = response else {
             panic!("system response to user query")
         };
         Ok(String::from_utf8(response)?)
+    }
+
+    #[wasm_bindgen]
+    // TODO this function assumes GraphQL service output
+    pub async fn mutate_application(&self, application_id: &str, mutation: &str) -> Result<(), JsError> {
+        fn array_to_bytes(array: &Vec<serde_json::Value>) -> Vec<u8> {
+            array.iter().map(|value| value.as_u64().unwrap() as u8).collect()
+        }
+
+        let chain_client = self.0.default_chain_client().await?;
+        let application_id = application_id.parse()?;
+        let response = chain_client.query_application(linera_execution::Query::User {
+            application_id,
+            bytes: mutation.as_bytes().to_vec(),
+        }).await?;
+        let linera_execution::Response::User(response) = response else {
+            panic!("system response to user query")
+        };
+        let response: serde_json::Value = serde_json::from_slice(&response)?;
+        let data = &response["data"];
+        tracing::info!("data: {data:?}");
+        let operations: Vec<_> = data.as_object().unwrap().values()
+            .map(|value| linera_execution::Operation::User {
+                application_id,
+                bytes: array_to_bytes(value.as_array().unwrap()),
+            })
+            .collect();
+
+        // TODO return hash to caller
+        let _hash = loop {
+            use linera_core::data_types::ClientOutcome::*;
+            let timeout = match chain_client.execute_operations(operations.clone()).await? {
+                Committed(certificate) => break certificate.value.hash(),
+                WaitForTimeout(timeout) => timeout,
+            };
+            let mut stream = chain_client.subscribe().await?;
+            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
+        };
+
+        Ok(())
     }
 }
 
