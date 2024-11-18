@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Epilogue:ital,wght@0,500;1,500&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -.02em;
+    background-color: #faf7f2;
+    height: 100vh;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 4rem;
+    padding: 0.5rem;
+}
+
+.container>* {
+    flex: 1;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.content>* {
+    margin: 2rem;
+}
+
+h2 {
+    font-size: 5rem;
+    font-family: 'Epilogue', serif;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.counter {
+    font-size: 1.25rem;
+    margin: 1.5rem 0 2rem;
+}
+
+button {
+    background-color: rgb(222, 42, 2);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+}
+
+button:hover {
+    background-color: #d62f1a;
+}
+
+.log-panel {
+    background-color: rgb(222, 42, 2);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 40vw;
+}
+
+.log-container {
+    border-radius: 12px;
+    padding: 1.5rem;
+    overflow: hidden;
+}
+
+.log-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 1rem;
+}
+
+.log-entry {
+    font-family: monospace;
+    padding: 0.5rem 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    white-space: pre;
+    overflow: hidden;
+}
+
+.log-entry:first-child {
+    margin-top: 0;
+}
