@@ -18,6 +18,6 @@ then
     cargo update --package wasm-bindgen --precise "$wasm_bindgen_cli_version"
 fi
 
-cargo build --lib --target wasm32-unknown-unknown
+cargo build --lib --target wasm32-unknown-unknown --release
 
-wasm-bindgen target/wasm32-unknown-unknown/debug/linera_web.wasm --out-dir pkg --typescript --target web --split-linked-modules
+wasm-bindgen target/wasm32-unknown-unknown/release/linera_web.wasm --out-dir pkg --typescript --target web --split-linked-modules
