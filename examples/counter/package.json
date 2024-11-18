@@ -5,15 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
-      "lit": "^3.2.1",
       "@linera/extension": "workspace:^"
   },
   "devDependencies": {
-    "typescript": "~5.6.2",
     "vite": "^5.4.10"
   }
 }
