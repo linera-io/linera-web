@@ -10,7 +10,7 @@ There are two pieces to be built:
 
 - the client worker (written in Rust, and depending on the core
 [`linera-protocol`](https://github.com/linera-io/linera-protocol)
-repository
+repository).
 - and the Web extension (written in TypeScript).
 
 The Web extension depends on the client worker; to build it you must
