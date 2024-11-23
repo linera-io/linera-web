@@ -43,7 +43,7 @@ jobs:
     - name: Build the client worker
       run: |
         cd client-worker
-        nix develop '.?submodules=1' --override-input linera-protocol ../linera-protocol --command wasm-pack build --target web
+        nix develop '.?submodules=1' --override-input linera-protocol ../linera-protocol --command bash build.bash
     - name: Build the extension
       run: |
         cd extension
