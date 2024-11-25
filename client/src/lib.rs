@@ -2,25 +2,21 @@
 This module defines the client API for the Web extension.
  */
 
-use std::{collections::HashMap, future::Future, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
-use linera_base::identifiers::{ApplicationId, ChainId};
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
     client_options::ClientOptions,
     wallet::Wallet,
 };
-use linera_core::{
-    data_types::ClientOutcome,
-    node::{ValidatorNode as _, ValidatorNodeProvider as _},
-};
+use linera_core::node::{ValidatorNode as _, ValidatorNodeProvider as _};
 use linera_views::store::WithError;
 use serde::ser::Serialize as _;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
-// TODO convert to IndexedDbStore once we refactor Context
+// TODO(12): convert to IndexedDbStore once we refactor Context
 type WebStorage =
     linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
 
@@ -87,7 +83,8 @@ impl JsWallet {
 
 /// The full client API, exposed to the wallet implementation.  Calls
 /// to this API can be trusted to have originated from the user's
-/// request.
+/// request.  This struct is the backend for the extension itself
+/// (side panel, option page, et cetera).
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct Client {
@@ -98,47 +95,16 @@ pub struct Client {
 }
 
 /// The subset of the client API that should be exposed to application
-/// frontends.  The API here is directly exposed to random Web pages
-/// on the Internet, and so calls should not be trusted.
+/// frontends.  Any function exported here with `wasm_bindgen` can be
+/// called by untrusted Web pages, and so inputs must be verified and
+/// outputs must not leak sensitive information without user
+/// confirmation.
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct Frontend(Client);
 
 #[wasm_bindgen]
 impl Client {
-    /// Applies the given function to the chain client.
-    /// Updates the wallet regardless of the outcome. As long as the function returns a round
-    /// timeout, it will wait and retry.
-    async fn apply_client_command<Fut, T>(
-        &self,
-        chain_id: ChainId,
-        mut f: impl FnMut(&mut ChainClient) -> Fut,
-    ) -> Result<T, JsError>
-    where
-        Fut: Future<Output = Result<ClientOutcome<T>, JsError>>,
-    {
-        loop {
-            let mut chain_client = self
-                .client_context
-                .lock()
-                .await
-                .make_chain_client(chain_id)?;
-            let mut stream = chain_client.subscribe().await?;
-            let result = f(&mut chain_client).await;
-            self.client_context
-                .lock()
-                .await
-                .update_wallet(&chain_client)
-                .await?;
-            let timeout = match result? {
-                ClientOutcome::Committed(t) => return Ok(t),
-                ClientOutcome::WaitForTimeout(timeout) => timeout,
-            };
-            drop(chain_client);
-            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
-        }
-    }
-
     #[wasm_bindgen(constructor)]
     pub async fn new(wallet: JsWallet) -> Result<Client, JsError> {
         let JsWallet(wallet) = wallet;
@@ -248,8 +214,8 @@ impl Frontend {
     }
 
     #[wasm_bindgen]
-    // TODO use bytes here not strings
-    // TODO a lot of this logic is shared with `linera_service::node_service`
+    // TODO(14) allow passing bytes here rather than just strings
+    // TODO(15) a lot of this logic is shared with `linera_service::node_service`
     pub async fn query_application(
         &self,
         application_id: &str,
@@ -269,7 +235,7 @@ impl Frontend {
     }
 
     #[wasm_bindgen]
-    // TODO this function assumes GraphQL service output
+    // TODO(linera-protocol#2911) this function assumes GraphQL service output
     pub async fn mutate_application(
         &self,
         application_id: &str,
@@ -306,11 +272,10 @@ impl Frontend {
             })
             .collect();
 
-        // TODO return hash to caller
         let _hash = loop {
             use linera_core::data_types::ClientOutcome::*;
             let timeout = match chain_client.execute_operations(operations.clone()).await? {
-                Committed(certificate) => break certificate.value.hash(),
+                Committed(certificate) => break certificate.value().hash(),
                 WaitForTimeout(timeout) => timeout,
             };
             let mut stream = chain_client.subscribe().await?;
