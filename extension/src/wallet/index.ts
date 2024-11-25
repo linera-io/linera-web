@@ -51,27 +51,9 @@ export class Server {
   }
 
   async init() {
-    // const worker = new Worker(exampleWorkerUrl);
-    // const messaged = new Promise(resolve => {
-    //   worker.onmessage = e => {
-    //     resolve(e);
-    //   };
-    // });
-    // worker.postMessage('hello');
-    // console.log('resolved', await messaged);
-
     await (await wasm).default({
       module_or_path: (await fetch(wasmModuleUrl)).arrayBuffer(),
     });
-
-    // TODO enable this after wallet storage works again
-    // let wallet = await wasm.Wallet.read();
-    // if (wallet) {
-    //   this.client = await new wasm.Client(wallet);
-    //   console.debug('Client initialized from storage');
-    // } else {
-    //   console.debug('No wallet available in storage');
-    // }
 
     chrome.runtime.onConnect.addListener(port => {
       if (port.name !== 'notifications') {
