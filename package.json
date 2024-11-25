@@ -2,9 +2,12 @@
     "name": "@linera/workspace",
     "version": "1.0.0",
     "description": "",
-    "scripts": {},
+    "scripts": {
+        "build": "pnpm -r build",
+        "ci": "pnpm -r run ci"
+    },
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "devDependencies": { }
+    "devDependencies": {}
 }

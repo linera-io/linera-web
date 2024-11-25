@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ci": "pnpm install --frozen-lockfile && pnpm build"
   },
   "dependencies": {
-      "@linera/extension": "workspace:^"
+    "@linera/extension": "workspace:^"
   },
   "devDependencies": {
     "vite": "^5.4.10"

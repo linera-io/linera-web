@@ -2,6 +2,10 @@
 This module defines the client API for the Web extension.
  */
 
+// We sometimes need functions in this module to be async in order to
+// ensure the generated code will return a `Promise`.
+#![allow(clippy::unused_async)]
+
 use std::{collections::HashMap, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
@@ -14,14 +18,14 @@ use linera_core::node::{ValidatorNode as _, ValidatorNodeProvider as _};
 use linera_views::store::WithError;
 use serde::ser::Serialize as _;
 use wasm_bindgen::prelude::*;
-use web_sys::*;
+use web_sys::{js_sys, wasm_bindgen};
 
 // TODO(12): convert to IndexedDbStore once we refactor Context
 type WebStorage =
     linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
 
-pub async fn get_storage(
-) -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error> {
+async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error>
+{
     linera_storage::DbStorage::initialize(
         linera_views::memory::MemoryStoreConfig::new(1),
         "linera",
@@ -68,6 +72,10 @@ pub struct JsWallet(PersistentWallet);
 
 #[wasm_bindgen(js_class = "Wallet")]
 impl JsWallet {
+    /// Creates and persists a new wallet from the given JSON string.
+    ///
+    /// # Errors
+    /// If the wallet deserialization fails.
     #[wasm_bindgen]
     pub async fn create(wallet: &str) -> Result<JsWallet, JsError> {
         Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
@@ -75,6 +83,10 @@ impl JsWallet {
         )?)))
     }
 
+    /// Attempts to read the wallet from persistent storage.
+    ///
+    /// # Errors
+    /// If storage is inaccessible.
     #[wasm_bindgen]
     pub async fn read() -> Result<Option<JsWallet>, JsError> {
         Ok(None)
@@ -105,6 +117,11 @@ pub struct Frontend(Client);
 
 #[wasm_bindgen]
 impl Client {
+    /// Creates a new client and connects to the network.
+    ///
+    /// # Errors
+    /// On transport or protocol error, or if persistent storage is
+    /// unavailable.
     #[wasm_bindgen(constructor)]
     pub async fn new(wallet: JsWallet) -> Result<Client, JsError> {
         let JsWallet(wallet) = wallet;
@@ -125,8 +142,10 @@ impl Client {
         Ok(Self { client_context })
     }
 
+    /// Set a callback to be called when a notification is received
+    /// from the network.
     #[wasm_bindgen]
-    pub fn on_notification(&self, handler: js_sys::Function) -> Result<(), JsError> {
+    pub fn on_notification(&self, handler: js_sys::Function) {
         let this = self.clone();
         wasm_bindgen_futures::spawn_local(async move {
             let mut notifications = this
@@ -146,7 +165,6 @@ impl Client {
                     .unwrap_throw();
             }
         });
-        Ok(())
     }
 
     async fn default_chain_client(&self) -> Result<ChainClient, JsError> {
@@ -158,7 +176,9 @@ impl Client {
         Ok(client_context.make_chain_client(chain_id)?)
     }
 
+    /// Gets an object implementing the API for Web frontends.
     #[wasm_bindgen]
+    #[must_use]
     pub fn frontend(&self) -> Frontend {
         Frontend(self.clone())
     }
@@ -172,6 +192,13 @@ static RESPONSE_SERIALIZER: serde_wasm_bindgen::Serializer = serde_wasm_bindgen:
 
 #[wasm_bindgen]
 impl Frontend {
+    /// Gets the version information of the validators of the current network.
+    ///
+    /// # Errors
+    /// If a validator is unreachable.
+    ///
+    /// # Panics
+    /// If no default chain is set for the current wallet.
     #[wasm_bindgen]
     pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
         let mut client_context = self.0.client_context.lock().await;
@@ -205,7 +232,7 @@ impl Frontend {
                 Err(e) => {
                     tracing::warn!(
                         "failed to get version information for validator {name:?}:\n{e:?}"
-                    )
+                    );
                 }
             }
         }
@@ -213,6 +240,14 @@ impl Frontend {
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 
+    /// Performs a query against an application's service.
+    ///
+    /// # Errors
+    /// If the application ID is invalid, the query is incorrect, or
+    /// the response isn't valid UTF-8.
+    ///
+    /// # Panics
+    /// On internal protocol errors.
     #[wasm_bindgen]
     // TODO(14) allow passing bytes here rather than just strings
     // TODO(15) a lot of this logic is shared with `linera_service::node_service`
@@ -234,6 +269,14 @@ impl Frontend {
         Ok(String::from_utf8(response)?)
     }
 
+    /// Mutate an application's state with the given mutation.
+    ///
+    /// # Errors
+    /// If the application ID or mutation is invalid.
+    ///
+    /// # Panics
+    /// If the response from the service is not a GraphQL response
+    /// containing operations to execute.
     #[wasm_bindgen]
     // TODO(linera-protocol#2911) this function assumes GraphQL service output
     pub async fn mutate_application(
@@ -241,10 +284,10 @@ impl Frontend {
         application_id: &str,
         mutation: &str,
     ) -> Result<(), JsError> {
-        fn array_to_bytes(array: &Vec<serde_json::Value>) -> Vec<u8> {
+        fn array_to_bytes(array: &[serde_json::Value]) -> Vec<u8> {
             array
                 .iter()
-                .map(|value| value.as_u64().unwrap() as u8)
+                .map(|value| value.as_u64().unwrap().try_into().unwrap())
                 .collect()
         }
 
@@ -273,7 +316,7 @@ impl Frontend {
             .collect();
 
         let _hash = loop {
-            use linera_core::data_types::ClientOutcome::*;
+            use linera_core::data_types::ClientOutcome::{Committed, WaitForTimeout};
             let timeout = match chain_client.execute_operations(operations.clone()).await? {
                 Committed(certificate) => break certificate.value().hash(),
                 WaitForTimeout(timeout) => timeout,
@@ -287,7 +330,7 @@ impl Frontend {
 }
 
 #[wasm_bindgen(start)]
-pub async fn main() {
+pub fn main() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     linera_base::tracing::init();
 }
