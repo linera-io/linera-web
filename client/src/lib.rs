@@ -1,56 +1,44 @@
 /*!
 This module defines the client API for the Web extension.
+ */
 
-Exported (marked with `#[wasm_bindgen]`) functions will be callable from the extension frontend.
+use std::{collections::HashMap, future::Future, sync::Arc};
 
-Exported functions prefixed with `dapp_` _will additionally be
-callable from all Web pages to which the Web client has been
-connected_.  Outside of their type, which is checked at call time,
-arguments to these functions cannot be trusted and _must_ be verified!
-*/
-
+use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
+use linera_base::identifiers::{ApplicationId, ChainId};
+use linera_client::{
+    chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
+    client_options::ClientOptions,
+    wallet::Wallet,
+};
 use linera_core::{
     data_types::ClientOutcome,
-    node::{
-        ValidatorNode as _,
-        ValidatorNodeProvider as _,
-    },
+    node::{ValidatorNode as _, ValidatorNodeProvider as _},
 };
-
-use std::future::Future;
-
+use linera_views::store::WithError;
 use serde::ser::Serialize as _;
-
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
-use linera_base::identifiers::{ApplicationId, ChainId};
-use linera_client::{chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _}, client_options::ClientOptions, wallet::Wallet};
-
-use std::{collections::HashMap, sync::Arc};
-use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
-
-use linera_views::store::WithError;
-
 // TODO convert to IndexedDbStore once we refactor Context
-type WebStorage = linera_storage::DbStorage<
-    linera_views::memory::MemoryStore,
-    linera_storage::WallClock,
->;
+type WebStorage =
+    linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
 
-pub async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error> {
+pub async fn get_storage(
+) -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error> {
     linera_storage::DbStorage::initialize(
         linera_views::memory::MemoryStoreConfig::new(1),
         "linera",
         b"",
         Some(linera_execution::WasmRuntime::Wasmer),
-    ).await
+    )
+    .await
 }
-
 
 type PersistentWallet = linera_client::persistent::Memory<Wallet>;
 type ClientContext = linera_client::client_context::ClientContext<WebStorage, PersistentWallet>;
-type ChainClient = linera_core::client::ChainClient<linera_rpc::node_provider::NodeProvider, WebStorage>;
+type ChainClient =
+    linera_core::client::ChainClient<linera_rpc::node_provider::NodeProvider, WebStorage>;
 
 // TODO(#13): get from user
 pub const OPTIONS: ClientOptions = ClientOptions {
@@ -86,7 +74,9 @@ pub struct JsWallet(PersistentWallet);
 impl JsWallet {
     #[wasm_bindgen]
     pub async fn create(wallet: &str) -> Result<JsWallet, JsError> {
-        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(wallet)?)))
+        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
+            wallet,
+        )?)))
     }
 
     #[wasm_bindgen]
@@ -128,10 +118,18 @@ impl Client {
         Fut: Future<Output = Result<ClientOutcome<T>, JsError>>,
     {
         loop {
-            let mut chain_client = self.client_context.lock().await.make_chain_client(chain_id)?;
+            let mut chain_client = self
+                .client_context
+                .lock()
+                .await
+                .make_chain_client(chain_id)?;
             let mut stream = chain_client.subscribe().await?;
             let result = f(&mut chain_client).await;
-            self.client_context.lock().await.update_wallet(&chain_client).await?;
+            self.client_context
+                .lock()
+                .await
+                .update_wallet(&chain_client)
+                .await?;
             let timeout = match result? {
                 ClientOutcome::Committed(t) => return Ok(t),
                 ClientOutcome::WaitForTimeout(timeout) => timeout,
@@ -145,25 +143,41 @@ impl Client {
     pub async fn new(wallet: JsWallet) -> Result<Client, JsError> {
         let JsWallet(wallet) = wallet;
         let mut storage = get_storage().await?;
-        wallet.genesis_config().initialize_storage(&mut storage).await?;
-        let client_context = Arc::new(AsyncMutex::new(ClientContext::new(storage.clone(), OPTIONS, wallet)));
+        wallet
+            .genesis_config()
+            .initialize_storage(&mut storage)
+            .await?;
+        let client_context = Arc::new(AsyncMutex::new(ClientContext::new(
+            storage.clone(),
+            OPTIONS,
+            wallet,
+        )));
         ChainListener::new(ChainListenerConfig::default())
             .run(client_context.clone(), storage)
             .await;
         log::info!("Linera Web client successfully initialized");
-        Ok(Self {
-            client_context,
-        })
+        Ok(Self { client_context })
     }
 
     #[wasm_bindgen]
     pub fn on_notification(&self, handler: js_sys::Function) -> Result<(), JsError> {
         let this = self.clone();
         wasm_bindgen_futures::spawn_local(async move {
-            let mut notifications = this.default_chain_client().await.unwrap_throw().subscribe().await.unwrap_throw();
+            let mut notifications = this
+                .default_chain_client()
+                .await
+                .unwrap_throw()
+                .subscribe()
+                .await
+                .unwrap_throw();
             while let Some(notification) = notifications.next().await {
                 tracing::debug!("received notification: {notification:?}");
-                handler.call1(&JsValue::null(), &serde_wasm_bindgen::to_value(&notification).unwrap_throw()).unwrap_throw();
+                handler
+                    .call1(
+                        &JsValue::null(),
+                        &serde_wasm_bindgen::to_value(&notification).unwrap_throw(),
+                    )
+                    .unwrap_throw();
             }
         });
         Ok(())
@@ -171,7 +185,10 @@ impl Client {
 
     async fn default_chain_client(&self) -> Result<ChainClient, JsError> {
         let client_context = self.client_context.lock().await;
-        let chain_id = client_context.wallet().default_chain().expect("No default chain");
+        let chain_id = client_context
+            .wallet()
+            .default_chain()
+            .expect("No default chain");
         Ok(client_context.make_chain_client(chain_id)?)
     }
 
@@ -183,17 +200,19 @@ impl Client {
 
 // A serializer suitable for serializing responses to JavaScript to be
 // sent using `postMessage`.
-static RESPONSE_SERIALIZER: serde_wasm_bindgen::Serializer =
-    serde_wasm_bindgen::Serializer::new()
-        .serialize_large_number_types_as_bigints(true)
-        .serialize_maps_as_objects(true);
+static RESPONSE_SERIALIZER: serde_wasm_bindgen::Serializer = serde_wasm_bindgen::Serializer::new()
+    .serialize_large_number_types_as_bigints(true)
+    .serialize_maps_as_objects(true);
 
 #[wasm_bindgen]
 impl Frontend {
     #[wasm_bindgen]
     pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
         let mut client_context = self.0.client_context.lock().await;
-        let chain_id = client_context.wallet().default_chain().expect("No default chain");
+        let chain_id = client_context
+            .wallet()
+            .default_chain()
+            .expect("No default chain");
         let chain_client = client_context.make_chain_client(chain_id)?;
         chain_client.synchronize_from_validators().await?;
         let result = chain_client.local_committee().await;
@@ -209,11 +228,18 @@ impl Frontend {
                 .get_version_info()
                 .await
             {
-                Ok(version_info) => if validator_versions.insert(name, version_info.clone()).is_some() {
-                    tracing::warn!("duplicate validator entry for validator {name:?}");
+                Ok(version_info) => {
+                    if validator_versions
+                        .insert(name, version_info.clone())
+                        .is_some()
+                    {
+                        tracing::warn!("duplicate validator entry for validator {name:?}");
+                    }
                 }
                 Err(e) => {
-                    tracing::warn!("failed to get version information for validator {name:?}:\n{e:?}")
+                    tracing::warn!(
+                        "failed to get version information for validator {name:?}:\n{e:?}"
+                    )
                 }
             }
         }
@@ -224,12 +250,18 @@ impl Frontend {
     #[wasm_bindgen]
     // TODO use bytes here not strings
     // TODO a lot of this logic is shared with `linera_service::node_service`
-    pub async fn query_application(&self, application_id: &str, query: &str) -> Result<String, JsError> {
+    pub async fn query_application(
+        &self,
+        application_id: &str,
+        query: &str,
+    ) -> Result<String, JsError> {
         let chain_client = self.0.default_chain_client().await?;
-        let response = chain_client.query_application(linera_execution::Query::User {
-            application_id: application_id.parse()?,
-            bytes: query.as_bytes().to_vec(),
-        }).await?;
+        let response = chain_client
+            .query_application(linera_execution::Query::User {
+                application_id: application_id.parse()?,
+                bytes: query.as_bytes().to_vec(),
+            })
+            .await?;
         let linera_execution::Response::User(response) = response else {
             panic!("system response to user query")
         };
@@ -238,24 +270,36 @@ impl Frontend {
 
     #[wasm_bindgen]
     // TODO this function assumes GraphQL service output
-    pub async fn mutate_application(&self, application_id: &str, mutation: &str) -> Result<(), JsError> {
+    pub async fn mutate_application(
+        &self,
+        application_id: &str,
+        mutation: &str,
+    ) -> Result<(), JsError> {
         fn array_to_bytes(array: &Vec<serde_json::Value>) -> Vec<u8> {
-            array.iter().map(|value| value.as_u64().unwrap() as u8).collect()
+            array
+                .iter()
+                .map(|value| value.as_u64().unwrap() as u8)
+                .collect()
         }
 
         let chain_client = self.0.default_chain_client().await?;
         let application_id = application_id.parse()?;
-        let response = chain_client.query_application(linera_execution::Query::User {
-            application_id,
-            bytes: mutation.as_bytes().to_vec(),
-        }).await?;
+        let response = chain_client
+            .query_application(linera_execution::Query::User {
+                application_id,
+                bytes: mutation.as_bytes().to_vec(),
+            })
+            .await?;
         let linera_execution::Response::User(response) = response else {
             panic!("system response to user query")
         };
         let response: serde_json::Value = serde_json::from_slice(&response)?;
         let data = &response["data"];
         tracing::info!("data: {data:?}");
-        let operations: Vec<_> = data.as_object().unwrap().values()
+        let operations: Vec<_> = data
+            .as_object()
+            .unwrap()
+            .values()
             .map(|value| linera_execution::Operation::User {
                 application_id,
                 bytes: array_to_bytes(value.as_array().unwrap()),
