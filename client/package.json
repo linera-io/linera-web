@@ -5,9 +5,11 @@
     "main": "pkg/linera_web.js",
     "types": "pkg/linera_web.d.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "install": "true",
         "build": "bash build.bash",
-        "prepare": "$npm_execpath build"
+        "prepare": "pnpm build",
+        "lint": "cargo fmt --check && cargo clippy -- -W clippy::pedantic",
+        "ci": "pnpm lint"
     },
     "keywords": [],
     "author": "",

@@ -7,9 +7,10 @@
         "dev": "vite",
         "build:extension": "tsc && vite build -c extension.vite.config.js",
         "build:library": "tsc && vite build -c library.vite.config.js",
-        "build": "$npm_execpath build:extension && $npm_execpath build:library",
+        "build": "pnpm build:extension && pnpm build:library",
         "preview": "vite preview",
-        "prepare": "$npm_execpath build:library"
+        "prepare": "pnpm build:library",
+        "ci": "pnpm install --frozen-lockfile && pnpm build"
     },
     "dependencies": {
         "@shoelace-style/shoelace": "^2.16.0",
