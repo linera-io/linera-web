@@ -52,13 +52,14 @@ type PersistentWallet = linera_client::persistent::Memory<Wallet>;
 type ClientContext = linera_client::client_context::ClientContext<WebStorage, PersistentWallet>;
 type ChainClient = linera_core::client::ChainClient<linera_rpc::node_provider::NodeProvider, WebStorage>;
 
-// TODO get from config
+// TODO(#13): get from user
 pub const OPTIONS: ClientOptions = ClientOptions {
     send_timeout: std::time::Duration::from_millis(4000),
     recv_timeout: std::time::Duration::from_millis(4000),
     max_pending_message_bundles: 10,
     wasm_runtime: Some(linera_execution::WasmRuntime::Wasmer),
     max_concurrent_queries: None,
+    max_loaded_chains: nonzero_lit::usize!(40),
     max_stream_queries: 10,
     cache_size: 1000,
     retry_delay: std::time::Duration::from_millis(1000),
@@ -68,8 +69,9 @@ pub const OPTIONS: ClientOptions = ClientOptions {
     restrict_chain_ids_to: None,
     long_lived_services: false,
 
-    // TODO: separate these out from the `ClientOptions` struct, since
-    // the apply only to the CLI/native client
+    // TODO(linera-protocol#2944): separate these out from the
+    // `ClientOptions` struct, since they apply only to the CLI/native
+    // client
     tokio_threads: Some(1),
     command: linera_client::client_options::ClientCommand::Keygen,
     wallet_state_path: None,
