@@ -1,0 +1,10 @@
+{
+    "name": "@linera/workspace",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {},
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": { }
+}
