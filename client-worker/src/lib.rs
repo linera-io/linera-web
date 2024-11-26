@@ -1,5 +1,5 @@
-/**
-"This" module defines the client API for the Web extension.
+/*!
+This module defines the client API for the Web extension.
 
 Exported (marked with `#[wasm_bindgen]`) functions will be callable from the extension frontend.
 
