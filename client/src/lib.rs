@@ -20,7 +20,7 @@ use serde::ser::Serialize as _;
 use wasm_bindgen::prelude::*;
 use web_sys::{js_sys, wasm_bindgen};
 
-// TODO(12): convert to IndexedDbStore once we refactor Context
+// TODO(#12): convert to IndexedDbStore once we refactor Context
 type WebStorage =
     linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
 
@@ -93,9 +93,9 @@ impl JsWallet {
     }
 }
 
-/// The full client API, exposed to the wallet implementation.  Calls
+/// The full client API, exposed to the wallet implementation. Calls
 /// to this API can be trusted to have originated from the user's
-/// request.  This struct is the backend for the extension itself
+/// request. This struct is the backend for the extension itself
 /// (side panel, option page, et cetera).
 #[wasm_bindgen]
 #[derive(Clone)]
@@ -107,7 +107,7 @@ pub struct Client {
 }
 
 /// The subset of the client API that should be exposed to application
-/// frontends.  Any function exported here with `wasm_bindgen` can be
+/// frontends. Any function exported here with `wasm_bindgen` can be
 /// called by untrusted Web pages, and so inputs must be verified and
 /// outputs must not leak sensitive information without user
 /// confirmation.
