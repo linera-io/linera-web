@@ -1,15 +1,24 @@
-import * as wasm from './client/linera_web.js';
-import type { Client } from './client/linera_web.js';
+import * as wasm from '@/client';
+import type { Client } from '@/client';
 
-import wasmModuleUrl from './client/linera_web_bg.wasm?url';
+import wasmModuleUrl from '@linera/client/pkg/linera_web_bg.wasm?url';
 import * as guard from './message.guard';
 
 export class Server {
+  private subscribers = new Set<chrome.runtime.Port>();
+
   private constructor(private client?: Client, private wallet?: string) { }
 
   async setWallet(wallet: string) {
     this.wallet = wallet;
-    this.client = await new (await wasm).Client(await (await wasm).Wallet.create(wallet));
+    await wasm;
+    this.client = await new wasm.Client(await wasm.Wallet.create(wallet));
+    this.client.on_notification((notification: any) => {
+      console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
+      for (const subscriber of this.subscribers.values()) {
+        subscriber.postMessage(notification);
+      }
+    });
   }
 
   async callClientFunction(sender: chrome.runtime.MessageSender, functionName: string, ...args: any): Promise<any> {
@@ -42,27 +51,19 @@ export class Server {
   }
 
   async init() {
-    // const worker = new Worker(exampleWorkerUrl);
-    // const messaged = new Promise(resolve => {
-    //   worker.onmessage = e => {
-    //     resolve(e);
-    //   };
-    // });
-    // worker.postMessage('hello');
-    // console.log('resolved', await messaged);
-
     await (await wasm).default({
       module_or_path: (await fetch(wasmModuleUrl)).arrayBuffer(),
     });
 
-    // TODO enable this after wallet storage works again
-    // let wallet = await wasm.Wallet.read();
-    // if (wallet) {
-    //   this.client = await new wasm.Client(wallet);
-    //   console.debug('Client initialized from storage');
-    // } else {
-    //   console.debug('No wallet available in storage');
-    // }
+    chrome.runtime.onConnect.addListener(port => {
+      if (port.name !== 'notifications') {
+        console.warn('Unknown channel type', port.name);
+        return;
+      }
+
+      this.subscribers.add(port);
+      port.onDisconnect.addListener(port => this.subscribers.delete(port));
+    });
 
     chrome.runtime.onMessage.addListener((message, sender, respond) => {
       if (message.target !== 'wallet')
