@@ -12,6 +12,6 @@
         "ci": "pnpm lint"
     },
     "keywords": [],
-    "author": "",
-    "license": "ISC"
+    "author": "Linera <contact@linera.io>",
+    "license": "Apache-2.0"
 }

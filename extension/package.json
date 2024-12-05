@@ -1,6 +1,8 @@
 {
     "name": "@linera/extension",
     "version": "0.0.0",
+    "author": "Linera <contact@linera.io>",
+    "license": "Apache-2.0",
     "type": "module",
     "browser": "dist/library/linera.js",
     "scripts": {
