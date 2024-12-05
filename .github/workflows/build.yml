@@ -40,12 +40,6 @@ jobs:
         submodules: true
     - uses: cachix/install-nix-action@v26
     - uses: DeterminateSystems/magic-nix-cache-action@main
-    - name: Build the client worker
+    - name: Run all CI tasks
       run: |
-        cd client-worker
-        nix develop '.?submodules=1' --override-input linera-protocol ../linera-protocol --command bash build.bash
-    - name: Build the extension
-      run: |
-        cd extension
-        nix develop --override-input linera-protocol ../linera-protocol --command pnpm install
-        nix develop --override-input linera-protocol ../linera-protocol --command pnpm build
+        nix develop '.?submodules=1' --override-input linera-protocol ./linera-protocol --command pnpm run ci

@@ -17,4 +17,12 @@ window.addEventListener('linera-wallet-request', async e => {
   respond(event.detail.id, response);
 });
 
+const notifications = chrome.runtime.connect({ name: 'notifications' });
+notifications.onMessage.addListener((message: any) => {
+  console.debug('content script got notification');
+  window.dispatchEvent(new CustomEvent('linera-wallet-notification', {
+    detail: message,
+  }));
+});
+
 window.dispatchEvent(new Event('linera-wallet-loaded'));
