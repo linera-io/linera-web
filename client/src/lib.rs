@@ -172,7 +172,7 @@ impl Client {
         let chain_id = client_context
             .wallet()
             .default_chain()
-            .expect("No default chain");
+            .expect("A default chain should be configured");
         Ok(client_context.make_chain_client(chain_id)?)
     }
 
