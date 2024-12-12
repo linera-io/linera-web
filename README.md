@@ -6,25 +6,33 @@ This repository implements a Web client for the Linera protocol.
 
 # Building
 
-There are two pieces to be built:
+## Setup
 
-- the client worker (written in Rust, and depending on the core
-[`linera-protocol`](https://github.com/linera-io/linera-protocol)
-repository).
-- and the Web extension (written in TypeScript).
+This repository contains a Nix flake that precisely specifies its
+build environment.  The easiest way to set up the build environment is
+to install Nix with flake support (e.g. using the [Determinate Nix
+installer](https://github.com/DeterminateSystems/nix-installer)) and
+then run `nix develop` to enter the build environment.
 
-The Web extension depends on the client worker; to build it you must
-first build the client worker.
+Currently we only support building on Linux (`x86_64-unknown-linux-gnu`).
 
-## Client worker
+## Building
 
-To build the client worker, run `wasm-pack build --target web` from
-within the `client-worker` directory.
+The project builds with `pnpm`.  First install the JavaScript dependencies:
 
-## Extension
+```shellsession
+pnpm install
+```
 
-To build the extension to a form that can be loaded into Chrome, run
-`pnpm install && pnpm build` from within the `extension` directory.
+Then build the extension:
+
+```shellsession
+cd extension
+pnpm build:extension
+```
+
+This will result in an unpacked Manifest v3 extension in
+`extension/dist/extension`.
 
 # Installation
 
@@ -45,12 +53,6 @@ icon.
 # Development
 
 ## Environment
-
-All prerequisites are encapsulated in the `flake.nix` file: running
-`nix develop` will put you into a shell capable of building this
-project.  Namely, the requirements are the same as those of
-`linera-protocol`, which we depend on, plus a JavaScript package
-manager such as [`pnpm`](https://pnpm.io/).
 
 For development, you can also use `pnpm build --watch` to
 automatically rebuild the extension on change.  Changes to the client
