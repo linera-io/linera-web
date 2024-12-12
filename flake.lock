@@ -61,13 +61,10 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1732280255,
-        "narHash": "sha256-ffulvZmmpmDGC8Z9Cibef9+tK7KLN03jDJzHEGwkIpA=",
-        "ref": "refs/heads/main",
-        "rev": "274332dab0d015ad6c7a9a867fea13ab59b3223f",
-        "revCount": 3673,
-        "type": "git",
-        "url": "file:///home/twey/dev/linera/web/main/linera-protocol"
+        "lastModified": 1734014551,
+        "narHash": "sha256-39Uh8x6s0TqPCNTWxgif9n83eF42/yzRZKfKuJUJgpE=",
+        "path": "linera-protocol",
+        "type": "path"
       },
       "original": {
         "path": "linera-protocol",
