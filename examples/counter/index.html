@@ -8,68 +8,75 @@
     <link href="/icon.png" rel="icon">
   </head>
   <body>
-    <div class="container">
-      <div class="content">
-        <div>
+    <main class="container">
+      <header class="content">
+        <section>
           <h2>Counter</h2>
           <p class="counter">Clicks: <span id="count">0</span></p>
-          <button id="increment-btn">Click me!</button>
-        </div>
-      </div>
+          <button id="increment-btn" aria-label="Increase counter">Click me!</button>
+        </section>
+      </header>
 
-      <div class="log-panel">
+      <aside class="log-panel">
         <div class="log-container" id="log-container">
           <!-- Log entries will be added here -->
         </div>
-      </div>
-    </div>
+      </aside>
+    </main>
 
-    <script type="module">
-     import * as linera from '@linera/extension';
+    <script type="module" defer>
+      import * as linera from '@linera/extension';
 
-     const COUNTER_APP_ID = '39b3fce7e42baa0f40f675a4f09cfda5ab86aabc07c80893cbe6895eef6edc770503ecc314a7ad41bd7a04f63e6448f1f66e0946ee2046f4341d14e8c2f591d9e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000';
+      const COUNTER_APP_ID = '39b3fce7e42baa0f40f675a4f09cfda5ab86aabc07c80893cbe6895eef6edc770503ecc314a7ad41bd7a04f63e6448f1f66e0946ee2046f4341d14e8c2f591d9e476187f6ddfeb9d588c7b45d3df334d5501d6499b3f9ad5595cae86cce16a65010000000000000000000000';
 
-     async function incrementCount() {
-         await linera.callClientFunction(
-             'mutate_application',
-             COUNTER_APP_ID,
-             '{ "query": "mutation { increment(value: 1) }" }',
-         );
-     }
+      async function incrementCount() {
+          try {
+              await linera.callClientFunction(
+                  'mutate_application',
+                  COUNTER_APP_ID,
+                  '{ "query": "mutation { increment(value: 1) }" }',
+              );
+          } catch (error) {
+              console.error('Error while incrementing the counter:', error);
+          }
+      }
 
-     async function updateCount() {
-         const response = await linera.callClientFunction(
-             'query_application',
-             COUNTER_APP_ID,
-             '{ "query": "query { value }" }',
-         );
-         document.getElementById('count').innerText
-             = JSON.parse(response).data.value;
-     }
+      async function updateCount() {
+          try {
+              const response = await linera.callClientFunction(
+                  'query_application',
+                  COUNTER_APP_ID,
+                  '{ "query": "query { value }" }',
+              );
+              document.getElementById('count').innerText = JSON.parse(response).data.value;
+          } catch (error) {
+              console.error('Error while retrieving counter data:', error);
+          }
+      }
 
-     document.addEventListener('DOMContentLoaded', () => {
-         const countDisplay = document.getElementById('count');
-         const logContainer = document.getElementById('log-container');
-         const incrementBtn = document.getElementById('increment-btn');
-         linera.onNotification(notification => {
-             let newBlock = notification.reason.NewBlock;
-             if (!newBlock) return;
-             addLogEntry(`${newBlock.height}: ${newBlock.hash.padStart(5)}`);
-             updateCount();
-         });
-         linera.load().then(updateCount);
+      document.addEventListener('DOMContentLoaded', () => {
+          const countDisplay = document.getElementById('count');
+          const logContainer = document.getElementById('log-container');
+          const incrementBtn = document.getElementById('increment-btn');
 
-         function addLogEntry(message) {
-             const entry = document.createElement('div');
-             entry.className = 'log-entry';
-             entry.textContent = message;
-             logContainer.insertBefore(entry, logContainer.firstChild);
-         }
+          linera.onNotification(notification => {
+              const newBlock = notification?.reason?.NewBlock;
+              if (!newBlock) return;
+              addLogEntry(`${newBlock.height}: ${newBlock.hash.padStart(5)}`);
+              updateCount();
+          });
 
-         incrementBtn.addEventListener('click', () => {
-             incrementCount();
-         });
-     });
+          linera.load().then(updateCount);
+
+          incrementBtn.addEventListener('click', incrementCount);
+
+          function addLogEntry(message) {
+              const entry = document.createElement('div');
+              entry.className = 'log-entry';
+              entry.textContent = message;
+              logContainer.insertBefore(entry, logContainer.firstChild);
+          }
+      });
     </script>
   </body>
 </html>
