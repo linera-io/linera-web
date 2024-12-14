@@ -6,11 +6,17 @@
     box-sizing: border-box;
 }
 
+body, html {
+    height: 100%;
+}
+
 body {
     font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -.02em;
     background-color: #faf7f2;
-    height: 100vh;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.6;
 }
 
 .container {
@@ -32,7 +38,7 @@ body {
 }
 
 .content>* {
-    margin: 2rem;
+    margin: 1.5rem 0;
 }
 
 h2 {
@@ -56,9 +62,14 @@ button {
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
     font-family: 'Poppins', sans-serif;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+}
+
+button:focus {
+    outline: 2px solid #fff;
+    outline-offset: 4px;
 }
 
 button:hover {
@@ -71,6 +82,7 @@ button:hover {
     display: flex;
     flex-direction: column;
     min-width: 40vw;
+    max-width: 90vw;
 }
 
 .log-container {
@@ -88,13 +100,34 @@ button:hover {
 
 .log-entry {
     font-family: monospace;
-    padding: 0.5rem 0;
+    padding: 0.75rem 0;
     color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
     white-space: pre;
     overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.log-entry:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .log-entry:first-child {
     margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        gap: 2rem;
+        padding: 1rem;
+    }
+
+    .log-panel {
+        min-width: 100%;
+    }
+
+    h2 {
+        font-size: 3rem;
+    }
 }
