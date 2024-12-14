@@ -1,41 +1,44 @@
-import * as wallet from '@/wallet';
-
-let creating: Promise<void> | null; // A global promise to avoid concurrency issues
+const state = {
+  creatingDocument: null as Promise<void> | null
+};
 
 export async function setup() {
-  console.log('Creating offscreen document');
-  // This is a bit of a hack: I'd like to import the URL of the
-  // processed HTML instead of making it a root, but I can't find a
-  // way to do so in Vite.
-  const offscreenUrl = chrome.runtime.getURL('src/service-worker/offscreen/index.html');
+  try {
+    const offscreenUrl = chrome.runtime.getURL('src/service-worker/offscreen/index.html');
+    console.log(`Creating offscreen document with URL: ${offscreenUrl}`);
 
-  // Check all windows controlled by the service worker to see if one
-  // of them is the offscreen document with the given path
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT' as unknown as chrome.runtime.ContextType],
-    documentUrls: [offscreenUrl]
-  });
-
-  if (existingContexts.length > 0) {
-    console.log('Found existing offscreen document');
-    return;
-  }
-
-  if (!creating)
-    creating = chrome.offscreen.createDocument({
-      url: offscreenUrl,
-      reasons: ['WORKERS' as unknown as chrome.offscreen.Reason],
-      justification: 'to run heavy work in the background',
+    const existingContexts = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT'],
+      documentUrls: [offscreenUrl]
     });
 
-  console.log('Awaiting document creation');
+    if (existingContexts.length > 0) {
+      console.log(`Found existing offscreen document: ${existingContexts.length}`);
+      return;
+    }
 
-  await creating;
+    if (!state.creatingDocument) {
+      console.log('No existing offscreen document found, creating a new one.');
+      state.creatingDocument = chrome.offscreen.createDocument({
+        url: offscreenUrl,
+        reasons: ['WORKERS' as unknown as chrome.offscreen.Reason],
+        justification: 'to run heavy work in the background',
+      });
+    }
 
-  console.log('Document created');
-  creating = null;
+    console.log('Awaiting document creation...');
+    await state.creatingDocument;
+    console.log('Document created successfully.');
+    state.creatingDocument = null;
+  } catch (error) {
+    console.error('Error while creating offscreen document:', error);
+  }
 }
 
 export async function server() {
-  wallet.Server.run();
+  try {
+    await wallet.Server.run();
+  } catch (error) {
+    console.error('Error in server execution:', error);
+  }
 }
