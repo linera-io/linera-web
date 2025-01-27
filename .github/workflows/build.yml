@@ -43,3 +43,8 @@ jobs:
     - name: Run all CI tasks
       run: |
         nix develop '.?submodules=1' --override-input linera-protocol ./linera-protocol --command pnpm run ci
+    - name: Upload built extension
+      uses: actions/upload-artifact@v4
+      with:
+        name: linera-client
+        path: extension/dist/extension
