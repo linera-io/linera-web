@@ -79,10 +79,49 @@ impl JsWallet {
     /// # Errors
     /// If the wallet deserialization fails.
     #[wasm_bindgen]
-    pub async fn create(wallet: &str) -> Result<JsWallet, JsError> {
+    pub async fn from_json(wallet: &str) -> Result<JsWallet, JsError> {
         Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
             wallet,
         )?)))
+    }
+
+    #[wasm_bindgen]
+    pub async fn from_faucet(faucet_url: &str) -> Result<JsWallet, JsError> {
+        let key_pair = context.wallet.generate_key_pair();
+        let public_key = key_pair.public();
+        tracing::info!(
+            "Requesting a new chain for owner {} using the faucet at address {}",
+            Owner::from(&public_key),
+            faucet_url,
+        );
+        context
+            .wallet_mut()
+            .mutate(|w| w.add_unassigned_key_pair(key_pair))
+            .await?;
+        let faucet = cli_wrappers::Faucet::new(faucet_url);
+        let outcome = faucet.claim(&public_key).await?;
+        let validators = faucet.current_validators().await?;
+        println!("{}", outcome.chain_id);
+        println!("{}", outcome.message_id);
+        println!("{}", outcome.certificate_hash);
+        Self::assign_new_chain_to_key(
+            outcome.chain_id,
+            outcome.message_id,
+            storage.clone(),
+            public_key,
+            Some(validators),
+            &mut context,
+        )
+            .await?;
+        let admin_id = context.wallet().genesis_admin_chain();
+        let chains = with_other_chains
+            .into_iter()
+            .chain([admin_id, outcome.chain_id]);
+        Self::print_peg_certificate_hash(storage, chains, &context).await?;
+        context
+            .wallet_mut()
+            .mutate(|w| w.set_default_chain(outcome.chain_id))
+            .await??;
     }
 
     /// Attempts to read the wallet from persistent storage.
