@@ -54,7 +54,7 @@
          linera.onNotification(notification => {
              let newBlock = notification.reason.NewBlock;
              if (!newBlock) return;
-             addLogEntry(`${newBlock.height}: ${newBlock.hash.padStart(5)}`);
+             addLogEntry(`${newBlock.height}: ${newBlock.hash.slice(0, 5)}`);
              updateCount();
          });
          linera.load().then(updateCount);
