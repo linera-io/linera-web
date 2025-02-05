@@ -268,13 +268,16 @@ impl Frontend {
                 bytes: query.as_bytes().to_vec(),
             })
             .await?
-            else {
-                panic!("system response to user query")
-            };
+        else {
+            panic!("system response to user query")
+        };
 
         let _hash = loop {
             use linera_core::data_types::ClientOutcome::{Committed, WaitForTimeout};
-            let timeout = match chain_client.execute_operations(operations.clone(), vec![]).await? {
+            let timeout = match chain_client
+                .execute_operations(operations.clone(), vec![])
+                .await?
+            {
                 Committed(certificate) => break certificate.value().hash(),
                 WaitForTimeout(timeout) => timeout,
             };
