@@ -12,8 +12,8 @@ export class Server {
   async setWallet(wallet: string) {
     this.wallet = wallet;
     await wasm;
-    this.client = await new wasm.Client(await wasm.Wallet.create(wallet));
-    this.client.on_notification((notification: any) => {
+    this.client = await new wasm.Client(await wasm.Wallet.fromJson(wallet));
+    this.client.onNotification((notification: any) => {
       console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
       for (const subscriber of this.subscribers.values()) {
         subscriber.postMessage(notification);

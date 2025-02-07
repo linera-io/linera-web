@@ -29,6 +29,7 @@ export default defineConfig({
                 //    'linera-client': ['@linera/client'],
                 },
             },
+            external: ['env'],
         },
     },
     resolve: {
