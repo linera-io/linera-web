@@ -9,12 +9,17 @@ This module defines the client API for the Web extension.
 use std::{collections::HashMap, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
+use linera_base::{
+    crypto::CryptoHash,
+    identifiers::{ApplicationId, ChainId},
+};
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
     client_options::ClientOptions,
     wallet::Wallet,
 };
 use linera_core::node::{ValidatorNode as _, ValidatorNodeProvider as _};
+use linera_faucet_client::Faucet;
 use linera_views::store::WithError;
 use serde::ser::Serialize as _;
 use wasm_bindgen::prelude::*;
@@ -23,6 +28,8 @@ use web_sys::{js_sys, wasm_bindgen};
 // TODO(#12): convert to IndexedDbStore once we refactor Context
 type WebStorage =
     linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
+
+type JsResult<T> = Result<T, JsError>;
 
 async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error>
 {
@@ -72,56 +79,62 @@ pub const OPTIONS: ClientOptions = ClientOptions {
 #[wasm_bindgen(js_name = Wallet)]
 pub struct JsWallet(PersistentWallet);
 
+#[wasm_bindgen(js_name = Faucet)]
+pub struct JsFaucet(Faucet);
+
+#[wasm_bindgen(js_class = "Faucet")]
+impl JsFaucet {
+    #[wasm_bindgen(constructor)]
+    pub fn new(url: String) -> JsFaucet {
+        JsFaucet(Faucet::new(url))
+    }
+
+    #[wasm_bindgen(js_name = createWallet)]
+    pub async fn create_wallet(&self) -> JsResult<JsWallet> {
+        Ok(
+            JsWallet(PersistentWallet::new(linera_client::wallet::Wallet::new(self.0.genesis_config().await?, None)))
+        )
+    }
+
+    // TODO: figure out a way to alias or specify this string for TypeScript
+    #[wasm_bindgen(js_name = claimChain)]
+    pub async fn claim_chain(&mut self, client: &mut Client) -> JsResult<String> {
+        use linera_client::persistent::LocalPersistExt as _;
+        let mut context = client.client_context.lock().await;
+        let key_pair = context.wallet.generate_key_pair();
+        let owner: linera_base::identifiers::Owner = key_pair.public().into();
+        tracing::info!(
+            "Requesting a new chain for owner {} using the faucet at address {}",
+            owner,
+            self.0.url(),
+        );
+        context.wallet.mutate(|wallet| wallet.add_unassigned_key_pair(key_pair)).await?;
+        let outcome = self.0.claim(&owner).await?;
+        let validators = self.0.current_validators().await?;
+        println!("{}", outcome.chain_id);
+        println!("{}", outcome.message_id);
+        println!("{}", outcome.certificate_hash);
+        context.assign_new_chain_to_key(
+            outcome.chain_id,
+            outcome.message_id,
+            owner,
+            Some(validators),
+        )
+            .await?;
+        context.wallet.mutate(|wallet| wallet.set_default_chain(outcome.chain_id)).await??;
+        Ok(outcome.chain_id.to_string())
+    }
+}
+
 #[wasm_bindgen(js_class = "Wallet")]
 impl JsWallet {
     /// Creates and persists a new wallet from the given JSON string.
     ///
     /// # Errors
     /// If the wallet deserialization fails.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = fromJson)]
     pub async fn from_json(wallet: &str) -> Result<JsWallet, JsError> {
-        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
-            wallet,
-        )?)))
-    }
-
-    #[wasm_bindgen]
-    pub async fn from_faucet(faucet_url: &str) -> Result<JsWallet, JsError> {
-        let key_pair = context.wallet.generate_key_pair();
-        let public_key = key_pair.public();
-        tracing::info!(
-            "Requesting a new chain for owner {} using the faucet at address {}",
-            Owner::from(&public_key),
-            faucet_url,
-        );
-        context
-            .wallet_mut()
-            .mutate(|w| w.add_unassigned_key_pair(key_pair))
-            .await?;
-        let faucet = cli_wrappers::Faucet::new(faucet_url);
-        let outcome = faucet.claim(&public_key).await?;
-        let validators = faucet.current_validators().await?;
-        println!("{}", outcome.chain_id);
-        println!("{}", outcome.message_id);
-        println!("{}", outcome.certificate_hash);
-        Self::assign_new_chain_to_key(
-            outcome.chain_id,
-            outcome.message_id,
-            storage.clone(),
-            public_key,
-            Some(validators),
-            &mut context,
-        )
-            .await?;
-        let admin_id = context.wallet().genesis_admin_chain();
-        let chains = with_other_chains
-            .into_iter()
-            .chain([admin_id, outcome.chain_id]);
-        Self::print_peg_certificate_hash(storage, chains, &context).await?;
-        context
-            .wallet_mut()
-            .mutate(|w| w.set_default_chain(outcome.chain_id))
-            .await??;
+        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(wallet)?)))
     }
 
     /// Attempts to read the wallet from persistent storage.
@@ -185,7 +198,7 @@ impl Client {
 
     /// Set a callback to be called when a notification is received
     /// from the network.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = onNotification)]
     pub fn on_notification(&self, handler: js_sys::Function) {
         let this = self.clone();
         wasm_bindgen_futures::spawn_local(async move {
@@ -232,6 +245,12 @@ static RESPONSE_SERIALIZER: serde_wasm_bindgen::Serializer = serde_wasm_bindgen:
     .serialize_maps_as_objects(true);
 
 #[wasm_bindgen]
+pub struct Application {
+    client: Client,
+    id: ApplicationId,
+}
+
+#[wasm_bindgen]
 impl Frontend {
     /// Gets the version information of the validators of the current network.
     ///
@@ -240,7 +259,7 @@ impl Frontend {
     ///
     /// # Panics
     /// If no default chain is set for the current wallet.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = validatorVersionInfo)]
     pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
         let mut client_context = self.0.client_context.lock().await;
         let chain_id = client_context
@@ -281,6 +300,30 @@ impl Frontend {
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 
+
+
+    /// Retrieves an application for querying.
+    ///
+    /// # Errors
+    /// If the application ID is invalid.
+    ///
+    /// # Panics
+    /// On internal protocol errors.
+    #[wasm_bindgen(js_name = queryApplication)]
+    pub async fn application(
+        &self,
+        application_id: &str,
+        chain_id: JsValue,
+    ) -> JsResult<Application> {
+        Ok(Application {
+            client: self.0.clone(),
+            id: application_id.parse()?,
+        })
+    }
+}
+
+#[wasm_bindgen]
+impl Application {
     /// Performs a query against an application's service.
     ///
     /// # Errors
@@ -292,18 +335,15 @@ impl Frontend {
     #[wasm_bindgen]
     // TODO(14) allow passing bytes here rather than just strings
     // TODO(15) a lot of this logic is shared with `linera_service::node_service`
-    pub async fn query_application(
-        &self,
-        application_id: &str,
-        query: &str,
-    ) -> Result<String, JsError> {
-        let chain_client = self.0.default_chain_client().await?;
+    pub async fn query(&self, query: &str) -> JsResult<String> {
+        let chain_client = self.client.default_chain_client().await?;
+
         let linera_execution::QueryOutcome {
             response: linera_execution::QueryResponse::User(response),
             operations,
         } = chain_client
             .query_application(linera_execution::Query::User {
-                application_id: application_id.parse()?,
+                application_id: self.id,
                 bytes: query.as_bytes().to_vec(),
             })
             .await?

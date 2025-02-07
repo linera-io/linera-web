@@ -1,5 +1,5 @@
 {
-  "name": "@linera/examples/counter",
+  "name": "@linera/examples/hosted-counter",
   "private": true,
   "author": "Linera <contact@linera.io>",
   "license": "Apache-2.0",
@@ -12,7 +12,7 @@
     "ci": "pnpm install --frozen-lockfile && pnpm build"
   },
   "dependencies": {
-    "@linera/extension": "workspace:^"
+    "@linera/client": "workspace:^"
   },
   "devDependencies": {
     "vite": "^5.4.10"

@@ -52,6 +52,9 @@ features = ["web", "wasmer"]
 path = "../linera-protocol/linera-execution"
 features = ["web", "wasmer"]
 
+[dependencies.linera-faucet-client]
+path = "../linera-protocol/linera-faucet/client"
+
 [dependencies.linera-rpc]
 path = "../linera-protocol/linera-rpc"
 features = ["web"]
