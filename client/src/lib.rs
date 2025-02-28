@@ -6,19 +6,19 @@ This module defines the client API for the Web extension.
 // ensure the generated code will return a `Promise`.
 #![allow(clippy::unused_async)]
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, future::Future, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
-use linera_base::{
-    crypto::CryptoHash,
-    identifiers::{ApplicationId, ChainId},
-};
+use linera_base::identifiers::ApplicationId;
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
     client_options::ClientOptions,
     wallet::Wallet,
 };
-use linera_core::node::{ValidatorNode as _, ValidatorNodeProvider as _};
+use linera_core::{
+    data_types::ClientOutcome,
+    node::{ValidatorNode as _, ValidatorNodeProvider as _},
+};
 use linera_faucet_client::Faucet;
 use linera_views::store::WithError;
 use serde::ser::Serialize as _;
@@ -98,7 +98,7 @@ impl JsFaucet {
 
     // TODO: figure out a way to alias or specify this string for TypeScript
     #[wasm_bindgen(js_name = claimChain)]
-    pub async fn claim_chain(&mut self, client: &mut Client) -> JsResult<String> {
+    pub async fn claim_chain(&self, client: &mut Client) -> JsResult<String> {
         use linera_client::persistent::LocalPersistExt as _;
         let mut context = client.client_context.lock().await;
         let key_pair = context.wallet.generate_key_pair();
@@ -122,6 +122,7 @@ impl JsFaucet {
         )
             .await?;
         context.wallet.mutate(|wallet| wallet.set_default_chain(outcome.chain_id)).await??;
+        context.client.track_chain(outcome.chain_id);
         Ok(outcome.chain_id.to_string())
     }
 }
@@ -230,6 +231,26 @@ impl Client {
         Ok(client_context.make_chain_client(chain_id)?)
     }
 
+    async fn apply_client_command<Fut, T, E>(&self, chain_client: &ChainClient, mut command: impl FnMut() -> Fut) -> Result<Result<T, E>, linera_client::Error>
+    where
+        Fut: Future<Output = Result<ClientOutcome<T>, E>>,
+    {
+        let result = loop {
+            use ClientOutcome::{Committed, WaitForTimeout};
+            let timeout = match command().await {
+                Ok(Committed(outcome)) => break Ok(Ok(outcome)),
+                Ok(WaitForTimeout(timeout)) => timeout,
+                Err(e) => break Ok(Err(e)),
+            };
+            let mut stream = chain_client.subscribe().await?;
+            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
+        };
+
+        self.client_context.lock().await.update_and_save_wallet(&chain_client).await?;
+
+        result
+    }
+
     /// Gets an object implementing the API for Web frontends.
     #[wasm_bindgen]
     #[must_use]
@@ -250,6 +271,16 @@ pub struct Application {
     id: ApplicationId,
 }
 
+async fn has_application(chain_client: &ChainClient, application_id: ApplicationId) -> JsResult<bool> {
+    Ok(chain_client.chain_state_view().await?
+        .execution_state
+        .system
+        .registry
+        .known_applications
+        .contains_key(&application_id)
+        .await?)
+}
+
 #[wasm_bindgen]
 impl Frontend {
     /// Gets the version information of the validators of the current network.
@@ -260,7 +291,7 @@ impl Frontend {
     /// # Panics
     /// If no default chain is set for the current wallet.
     #[wasm_bindgen(js_name = validatorVersionInfo)]
-    pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
+    pub async fn validator_version_info(&self) -> JsResult<JsValue> {
         let mut client_context = self.0.client_context.lock().await;
         let chain_id = client_context
             .wallet()
@@ -300,8 +331,6 @@ impl Frontend {
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 
-
-
     /// Retrieves an application for querying.
     ///
     /// # Errors
@@ -309,15 +338,33 @@ impl Frontend {
     ///
     /// # Panics
     /// On internal protocol errors.
-    #[wasm_bindgen(js_name = queryApplication)]
+    #[wasm_bindgen]
     pub async fn application(
         &self,
-        application_id: &str,
-        chain_id: JsValue,
+        id: &str,
     ) -> JsResult<Application> {
+        let id = id.parse()?;
+        let chain_client = self.0.default_chain_client().await?;
+
+        if !has_application(&chain_client, id).await? {
+            let mut delay = web_time::Duration::from_millis(100);
+            let hash = self.0.apply_client_command(&chain_client, || chain_client.request_application(id, None)).await??;
+            self.0.client_context.lock().await.update_wallet(&chain_client).await?;
+            tracing::info!("successfully requested application, final certificate hash {hash:?}");
+            while !has_application(&chain_client, id).await? {
+                tracing::info!("application {id:?} not found on chain");
+                wasmtimer::tokio::sleep(delay).await;
+                tracing::info!("synchronizing validators");
+                chain_client.synchronize_from_validators().await?;
+                tracing::info!("processing inbox");
+                chain_client.process_inbox().await?;
+                delay *= 2;
+            }
+        }
+
         Ok(Application {
             client: self.0.clone(),
-            id: application_id.parse()?,
+            id,
         })
     }
 }
@@ -351,19 +398,13 @@ impl Application {
             panic!("system response to user query")
         };
 
-        let _hash = loop {
-            use linera_core::data_types::ClientOutcome::{Committed, WaitForTimeout};
-            let timeout = match chain_client
-                .execute_operations(operations.clone(), vec![])
-                .await?
-            {
-                Committed(certificate) => break certificate.value().hash(),
-                WaitForTimeout(timeout) => timeout,
-            };
-            let mut stream = chain_client.subscribe().await?;
-            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
-        };
-
+        if !operations.is_empty() {
+            let _hash = self.client.apply_client_command(
+                &chain_client,
+                || chain_client.execute_operations(operations.clone(), vec![]),
+            ).await??;
+        }
+        
         Ok(String::from_utf8(response)?)
     }
 }

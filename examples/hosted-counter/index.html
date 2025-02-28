@@ -18,6 +18,7 @@
       </div>
 
       <div class="log-panel">
+        <h3>Chain history for <span id="chain-id"></span></h3>
         <div class="log-container" id="log-container">
           <!-- Log entries will be added here -->
         </div>
@@ -27,21 +28,18 @@
     <script type="module">
      import * as linera from '@linera/client';
 
-     const COUNTER_APP_ID =
-         'dc5df03866d4580734adac3b191c05f0742b4d8c7218e482b6e3356e8de35f76a8ce776ded5e5bf9efaad108f37f7fd04ade44b0ba8373506379247d593f5ccbb7a85e90acb4badf7d04a239b2b6721bac885c3422cf3b93861695f1a5a33d9e010000000000000000000000';
 
-     async function incrementCount(client) {
-         await client.frontend().queryApplication(
-             COUNTER_APP_ID,
-             '{ "query": "mutation { increment(value: 1) }" }',
-         );
+      const COUNTER_APP_ID = '935fe86b872203233ab84463179eff98892902a14b36771397b0387a60bfb8f324ab97360f11e9d5073c2004bc4b800b4a28a974dc0fe0fab56e979728fdcf26b7a85e90acb4badf7d04a239b2b6721bac885c3422cf3b93861695f1a5a33d9e010000000000000000000000';
+
+     //const COUNTER_APP_ID = location.search.replace(/^\?/, '') ||
+     //    'dc5df03866d4580734adac3b191c05f0742b4d8c7218e482b6e3356e8de35f76a8ce776ded5e5bf9efaad108f37f7fd04ade44b0ba8373506379247d593f5ccbb7a85e90acb4badf7d04a239b2b6721bac885c3422cf3b93861695f1a5a33d9e010000000000000000000000';
+
+     async function incrementCount(counter) {
+         await counter.query('{ "query": "mutation { increment(value: 1) }" }');
      }
 
-     async function updateCount(client) {
-         const response = await client.frontend().queryApplication(
-             COUNTER_APP_ID,
-             '{ "query": "query { value }" }',
-         );
+     async function updateCount(counter) {
+         const response = await counter.query('{ "query": "query { value }" }');
          document.getElementById('count').innerText
              = JSON.parse(response).data.value;
      }
@@ -52,17 +50,24 @@
          const faucet = await new linera.Faucet('http://localhost:8081');
          const wallet = await faucet.createWallet();
          const client = await new linera.Client(wallet);
-         faucet.claimChain(client);
+         const chain = await faucet.claimChain(client);
+
+         document.getElementById('chain-id').innerText = chain;
+
+         console.log('requesting application');
+         const counter = await client.frontend().application(COUNTER_APP_ID);
+         console.log('application retrieved');
 
          const logContainer = document.getElementById('log-container');
          const incrementBtn = document.getElementById('increment-btn');
 
-         updateCount(client);
+         updateCount(counter);
          client.onNotification(notification => {
+             console.debug('received notification', notification);
              let newBlock = notification.reason.NewBlock;
              if (!newBlock) return;
              addLogEntry(`${newBlock.height}: ${newBlock.hash.padStart(5)}`);
-             updateCount(client);
+             updateCount(counter);
          });
 
          function addLogEntry(message) {
@@ -73,7 +78,7 @@
          }
 
          incrementBtn.addEventListener('click', () => {
-             incrementCount(client);
+             incrementCount(counter);
          });
      });
     </script>

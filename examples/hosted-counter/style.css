@@ -71,30 +71,25 @@ button:hover {
     display: flex;
     flex-direction: column;
     min-width: 40vw;
+    padding: 0.5rem;
+    padding: 1.5rem;
 }
 
 .log-container {
     border-radius: 12px;
-    padding: 1.5rem;
     overflow: hidden;
+    color: rgba(255, 255, 255, 0.9);
 }
 
-.log-title {
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin: 0 0 1rem;
+#chain-id {
+    font-family: monospace;
+    color: black;
 }
 
 .log-entry {
     font-family: monospace;
-    padding: 0.5rem 0;
-    color: rgba(255, 255, 255, 0.9);
     font-size: 0.9rem;
+    padding: 0.5rem;
     white-space: pre;
     overflow: hidden;
-}
-
-.log-entry:first-child {
-    margin-top: 0;
 }
