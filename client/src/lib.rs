@@ -246,7 +246,7 @@ impl Client {
             linera_client::util::wait_for_next_round(&mut stream, timeout).await;
         };
 
-        self.client_context.lock().await.update_and_save_wallet(&chain_client).await?;
+        self.client_context.lock().await.update_wallet(&chain_client).await?;
 
         result
     }
@@ -300,7 +300,7 @@ impl Frontend {
         let chain_client = client_context.make_chain_client(chain_id)?;
         chain_client.synchronize_from_validators().await?;
         let result = chain_client.local_committee().await;
-        client_context.update_and_save_wallet(&chain_client).await?;
+        client_context.update_wallet(&chain_client).await?;
         let committee = result?;
         let node_provider = client_context.make_node_provider();
 
