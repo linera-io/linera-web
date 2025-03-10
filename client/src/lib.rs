@@ -85,18 +85,29 @@ pub struct JsFaucet(Faucet);
 #[wasm_bindgen(js_class = "Faucet")]
 impl JsFaucet {
     #[wasm_bindgen(constructor)]
+    #[must_use]
     pub fn new(url: String) -> JsFaucet {
         JsFaucet(Faucet::new(url))
     }
 
+    /// Creates a new wallet from the faucet.
+    ///
+    /// # Errors
+    /// If we couldn't retrieve the genesis config from the faucet.
     #[wasm_bindgen(js_name = createWallet)]
     pub async fn create_wallet(&self) -> JsResult<JsWallet> {
-        Ok(
-            JsWallet(PersistentWallet::new(linera_client::wallet::Wallet::new(self.0.genesis_config().await?, None)))
-        )
+        Ok(JsWallet(PersistentWallet::new(
+            linera_client::wallet::Wallet::new(self.0.genesis_config().await?, None),
+        )))
     }
 
     // TODO: figure out a way to alias or specify this string for TypeScript
+    /// Claims a new chain from the faucet, with a new keypair and some tokens.
+    ///
+    /// # Errors
+    /// - if we fail to get the list of current validators from the faucet
+    /// - if we fail to claim the chain from the faucet
+    /// - if we fail to persist the new chain or keypair to the wallet
     #[wasm_bindgen(js_name = claimChain)]
     pub async fn claim_chain(&self, client: &mut Client) -> JsResult<String> {
         use linera_client::persistent::LocalPersistExt as _;
@@ -108,20 +119,24 @@ impl JsFaucet {
             owner,
             self.0.url(),
         );
-        context.wallet.mutate(|wallet| wallet.add_unassigned_key_pair(key_pair)).await?;
+        context
+            .wallet
+            .mutate(|wallet| wallet.add_unassigned_key_pair(key_pair))
+            .await?;
         let outcome = self.0.claim(&owner).await?;
         let validators = self.0.current_validators().await?;
-        println!("{}", outcome.chain_id);
-        println!("{}", outcome.message_id);
-        println!("{}", outcome.certificate_hash);
-        context.assign_new_chain_to_key(
-            outcome.chain_id,
-            outcome.message_id,
-            owner,
-            Some(validators),
-        )
+        context
+            .assign_new_chain_to_key(
+                outcome.chain_id,
+                outcome.message_id,
+                owner,
+                Some(validators),
+            )
             .await?;
-        context.wallet.mutate(|wallet| wallet.set_default_chain(outcome.chain_id)).await??;
+        context
+            .wallet
+            .mutate(|wallet| wallet.set_default_chain(outcome.chain_id))
+            .await??;
         context.client.track_chain(outcome.chain_id);
         Ok(outcome.chain_id.to_string())
     }
@@ -135,7 +150,9 @@ impl JsWallet {
     /// If the wallet deserialization fails.
     #[wasm_bindgen(js_name = fromJson)]
     pub async fn from_json(wallet: &str) -> Result<JsWallet, JsError> {
-        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(wallet)?)))
+        Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
+            wallet,
+        )?)))
     }
 
     /// Attempts to read the wallet from persistent storage.
@@ -231,7 +248,11 @@ impl Client {
         Ok(client_context.make_chain_client(chain_id)?)
     }
 
-    async fn apply_client_command<Fut, T, E>(&self, chain_client: &ChainClient, mut command: impl FnMut() -> Fut) -> Result<Result<T, E>, linera_client::Error>
+    async fn apply_client_command<Fut, T, E>(
+        &self,
+        chain_client: &ChainClient,
+        mut command: impl FnMut() -> Fut,
+    ) -> Result<Result<T, E>, linera_client::Error>
     where
         Fut: Future<Output = Result<ClientOutcome<T>, E>>,
     {
@@ -246,7 +267,11 @@ impl Client {
             linera_client::util::wait_for_next_round(&mut stream, timeout).await;
         };
 
-        self.client_context.lock().await.update_wallet(&chain_client).await?;
+        self.client_context
+            .lock()
+            .await
+            .update_wallet(chain_client)
+            .await?;
 
         result
     }
@@ -271,8 +296,13 @@ pub struct Application {
     id: ApplicationId,
 }
 
-async fn has_application(chain_client: &ChainClient, application_id: ApplicationId) -> JsResult<bool> {
-    Ok(chain_client.chain_state_view().await?
+async fn has_application(
+    chain_client: &ChainClient,
+    application_id: ApplicationId,
+) -> JsResult<bool> {
+    Ok(chain_client
+        .chain_state_view()
+        .await?
         .execution_state
         .system
         .registry
@@ -339,17 +369,22 @@ impl Frontend {
     /// # Panics
     /// On internal protocol errors.
     #[wasm_bindgen]
-    pub async fn application(
-        &self,
-        id: &str,
-    ) -> JsResult<Application> {
+    pub async fn application(&self, id: &str) -> JsResult<Application> {
         let id = id.parse()?;
         let chain_client = self.0.default_chain_client().await?;
 
         if !has_application(&chain_client, id).await? {
             let mut delay = web_time::Duration::from_millis(100);
-            let hash = self.0.apply_client_command(&chain_client, || chain_client.request_application(id, None)).await??;
-            self.0.client_context.lock().await.update_wallet(&chain_client).await?;
+            let hash = self
+                .0
+                .apply_client_command(&chain_client, || chain_client.request_application(id, None))
+                .await??;
+            self.0
+                .client_context
+                .lock()
+                .await
+                .update_wallet(&chain_client)
+                .await?;
             tracing::info!("successfully requested application, final certificate hash {hash:?}");
             while !has_application(&chain_client, id).await? {
                 tracing::info!("application {id:?} not found on chain");
@@ -399,12 +434,14 @@ impl Application {
         };
 
         if !operations.is_empty() {
-            let _hash = self.client.apply_client_command(
-                &chain_client,
-                || chain_client.execute_operations(operations.clone(), vec![]),
-            ).await??;
+            let _hash = self
+                .client
+                .apply_client_command(&chain_client, || {
+                    chain_client.execute_operations(operations.clone(), vec![])
+                })
+                .await??;
         }
-        
+
         Ok(String::from_utf8(response)?)
     }
 }
