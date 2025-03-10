@@ -36,7 +36,6 @@ async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore 
     linera_storage::DbStorage::initialize(
         linera_views::memory::MemoryStoreConfig::new(1),
         "linera",
-        b"",
         Some(linera_execution::WasmRuntime::Wasmer),
     )
     .await
@@ -296,21 +295,6 @@ pub struct Application {
     id: ApplicationId,
 }
 
-async fn has_application(
-    chain_client: &ChainClient,
-    application_id: ApplicationId,
-) -> JsResult<bool> {
-    Ok(chain_client
-        .chain_state_view()
-        .await?
-        .execution_state
-        .system
-        .registry
-        .known_applications
-        .contains_key(&application_id)
-        .await?)
-}
-
 #[wasm_bindgen]
 impl Frontend {
     /// Gets the version information of the validators of the current network.
@@ -365,41 +349,11 @@ impl Frontend {
     ///
     /// # Errors
     /// If the application ID is invalid.
-    ///
-    /// # Panics
-    /// On internal protocol errors.
     #[wasm_bindgen]
     pub async fn application(&self, id: &str) -> JsResult<Application> {
-        let id = id.parse()?;
-        let chain_client = self.0.default_chain_client().await?;
-
-        if !has_application(&chain_client, id).await? {
-            let mut delay = web_time::Duration::from_millis(100);
-            let hash = self
-                .0
-                .apply_client_command(&chain_client, || chain_client.request_application(id, None))
-                .await??;
-            self.0
-                .client_context
-                .lock()
-                .await
-                .update_wallet(&chain_client)
-                .await?;
-            tracing::info!("successfully requested application, final certificate hash {hash:?}");
-            while !has_application(&chain_client, id).await? {
-                tracing::info!("application {id:?} not found on chain");
-                wasmtimer::tokio::sleep(delay).await;
-                tracing::info!("synchronizing validators");
-                chain_client.synchronize_from_validators().await?;
-                tracing::info!("processing inbox");
-                chain_client.process_inbox().await?;
-                delay *= 2;
-            }
-        }
-
         Ok(Application {
             client: self.0.clone(),
-            id,
+            id: id.parse()?,
         })
     }
 }

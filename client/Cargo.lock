@@ -2357,6 +2357,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
+ "url",
  "wasm-encoder",
  "wasm-instrument",
  "wasmparser 0.101.1",
