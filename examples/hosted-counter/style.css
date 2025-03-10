@@ -90,6 +90,14 @@ button:hover {
     font-family: monospace;
     font-size: 0.9rem;
     padding: 0.5rem;
-    white-space: pre;
     overflow: hidden;
+}
+
+.log-entry .height {
+    min-width: 3em;
+}
+
+.hash {
+    font-family: monospace;
+    background-color: rgba(255, 255, 255, 0.1);
 }
