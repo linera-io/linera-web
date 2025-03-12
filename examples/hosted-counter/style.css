@@ -9,7 +9,7 @@
 body {
     font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -.02em;
-    background-color: #faf7f2;
+    background-color: #f3eee2;
     height: 100vh;
 }
 
@@ -49,7 +49,7 @@ h2 {
 
 button {
     background-color: rgb(222, 42, 2);
-    color: white;
+    color: #f3eee2;
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 12px;
@@ -78,7 +78,7 @@ button:hover {
 .log-container {
     border-radius: 12px;
     overflow: hidden;
-    color: rgba(255, 255, 255, 0.9);
+    color: #f3eee2;
 }
 
 #chain-id {
@@ -100,4 +100,22 @@ button:hover {
 .hash {
     font-family: monospace;
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+.arrow {
+    height: 79px;
+    width: 42px;
+    aspect-ratio: inherit;
+    animation: 1s infinite alternate breathe ease-out;
+    will-change: transform;
+}
+
+@keyframes breathe {
+    from {
+        scale: 100%;
+    }
+
+    to {
+        scale: 120%;
+    }
 }
