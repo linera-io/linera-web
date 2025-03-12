@@ -11,6 +11,9 @@
     <div class="container">
       <div class="content">
         <div>
+            <svg class="arrow" viewBox="0 0 52 79">
+              <path d="M 28.85 78.565 L 22.691 68.03 L 39.386 39.474 L 22.678 10.892 L 28.837 0.358 L 51.703 39.474 Z M 0.309 61.986 L 13.557 39.322 L 0.284 16.62 L 14.628 16.62 L 27.901 39.322 L 14.654 61.986 Z" fill="rgb(222, 42, 2)"></path>
+            </svg>
           <h2>Counter</h2>
           <p class="counter">Clicks: <span id="count">0</span></p>
           <button id="increment-btn">Click me!</button>
@@ -32,13 +35,13 @@
     <script type="importmap">
       {
           "imports": {
-              "@linera/client": "./js/@linera/client/index.js"
+              "@linera/client": "./js/@linera/client/linera_web.js"
           }
       }
     </script>
 
     <script type="module">
-      import linera from '@linera/client';
+      import * as linera from '@linera/client';
 
       const COUNTER_APP_ID = 'a2b93d1da68bc052f5b8650b5484103244ab9662c3a2e7112c71acc825f8f76e1073f4e0775a9212fff735f4fa30c228334a44d098e81a828839ef22f927f461ee44e4b2c6372d9d235c7beecaa08697cbb9d62685c409d70f3374b00d4abd7c00';
 
@@ -53,11 +56,9 @@
       }
 
       async function run() {
-          console.log('initializing');
           await linera.default();
-          console.log('initialized');
 
-          const faucet = await new linera.Faucet('https://faucet.demo-net.linera.net');
+          const faucet = await new linera.Faucet('https://faucet.mini-net.linera.net');
           const wallet = await faucet.createWallet();
           const client = await new linera.Client(wallet);
           document.getElementById('chain-id').innerText = await faucet.claimChain(client);
@@ -69,7 +70,6 @@
 
           updateCount(counter);
           client.onNotification(notification => {
-              console.debug('received notification', notification);
               let newBlock = notification.reason.NewBlock;
               if (!newBlock) return;
               addLogEntry(newBlock);
