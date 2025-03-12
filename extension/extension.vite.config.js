@@ -25,11 +25,7 @@ export default defineConfig({
             output: {
                 minifyInternalExports: false,
                 entryFileNames: '[name].js',
-                manualChunks: {
-                //    'linera-client': ['@linera/client'],
-                },
             },
-            external: ['env'],
         },
     },
     resolve: {

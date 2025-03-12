@@ -2,8 +2,10 @@
     "name": "@linera/client",
     "version": "1.0.0",
     "description": "",
-    "main": "pkg/linera_web.js",
-    "types": "pkg/linera_web.d.ts",
+    "main": "dist/linera_web.js",
+    "types": "dist/linera_web.d.ts",
+    "files": "dist",
+    "type": "module",
     "scripts": {
         "install": "true",
         "build": "bash build.bash --release",

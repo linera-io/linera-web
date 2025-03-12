@@ -14,9 +14,6 @@ export default defineConfig({
             name: 'linera-web',
             fileName: 'linera',
         },
-        rollupOptions: {
-            external: ['env'],
-        },
     },
     resolve: {
         alias: {
