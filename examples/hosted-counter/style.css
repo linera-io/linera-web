@@ -6,33 +6,30 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100%;
+}
+
 body {
     font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     letter-spacing: -.02em;
     background-color: #f3eee2;
-    height: 100vh;
+    height: 100%;
 }
 
 .container {
     width: 100%;
     height: 100%;
-    display: flex;
-    gap: 4rem;
     padding: 0.5rem;
-}
-
-.container>* {
-    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(496px, 1fr));
 }
 
 .content {
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-
-.content>* {
-    margin: 2rem;
+    margin: 2em;
 }
 
 h2 {
@@ -40,11 +37,17 @@ h2 {
     font-family: 'Epilogue', serif;
     font-weight: 500;
     line-height: 1.2;
+    width: 100%;
+}
+
+p {
+    margin: 1rem 0.5rem;
+    margin-right: 1rem;
+    max-width: 20rem;
 }
 
 .counter {
     font-size: 1.25rem;
-    margin: 1.5rem 0 2rem;
 }
 
 button {
@@ -59,6 +62,8 @@ button {
     transition: background-color 0.2s ease;
     font-family: 'Poppins', sans-serif;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+    width: fit-content;
+    height: fit-content;
 }
 
 button:hover {
@@ -67,10 +72,12 @@ button:hover {
 
 .log-panel {
     background-color: rgb(222, 42, 2);
-    border-radius: 16px;
+    color: #f3eee2;
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
     min-width: 40vw;
+    min-height: 20rem;
     padding: 0.5rem;
     padding: 1.5rem;
 }
@@ -78,12 +85,10 @@ button:hover {
 .log-container {
     border-radius: 12px;
     overflow: hidden;
-    color: #f3eee2;
 }
 
 #chain-id {
     font-family: monospace;
-    color: black;
 }
 
 .log-entry {
@@ -117,5 +122,24 @@ button:hover {
 
     to {
         scale: 120%;
+    }
+}
+
+@media (max-width: 992px) {
+    .content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+    }
+}
+
+.ui {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 992px) {
+    .ui {
+        align-items: center;
     }
 }
