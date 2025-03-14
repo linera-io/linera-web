@@ -222,18 +222,18 @@ impl Client {
             let mut notifications = this
                 .default_chain_client()
                 .await
-                .unwrap_throw()
+                .unwrap()
                 .subscribe()
                 .await
-                .unwrap_throw();
+                .unwrap();
             while let Some(notification) = notifications.next().await {
                 tracing::debug!("received notification: {notification:?}");
                 handler
                     .call1(
                         &JsValue::null(),
-                        &serde_wasm_bindgen::to_value(&notification).unwrap_throw(),
+                        &serde_wasm_bindgen::to_value(&notification).unwrap(),
                     )
-                    .unwrap_throw();
+                    .unwrap();
             }
         });
     }
