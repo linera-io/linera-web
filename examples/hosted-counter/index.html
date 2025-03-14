@@ -11,10 +11,7 @@
     <div class="container">
       <div class="content">
         <div class="description">
-          <svg class="arrow" viewBox="0 0 52 79">
-            <path d="M 28.85 78.565 L 22.691 68.03 L 39.386 39.474 L 22.678 10.892 L 28.837 0.358 L 51.703 39.474 Z M 0.309 61.986 L 13.557 39.322 L 0.284 16.62 L 14.628 16.62 L 27.901 39.322 L 14.654 61.986 Z" fill="rgb(222, 42, 2)"></path>
-          </svg>
-          <h2>Counter</h2>
+          <h1>Counter</h1>
           <p>
             This is a simple application tracking some on-chain state that remembers the value of an integer counter.
           </p>
@@ -29,11 +26,11 @@
       </div>
 
       <div class="log-panel">
-        <h3>Chain history for <span id="chain-id" class="hash">requesting chain…</span></h3>
-        <div class="log-container" id="log-container">
+        <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
+        <div class="logs" id="logs">
           <template id="block-template">
             <div class="log-entry">
-              <span class="height"></span>: <span class="hash"></span>
+              <span class="height"></span>: <span class="code hash"></span>
             </div>
           </template>
         </div>
@@ -53,16 +50,6 @@
 
       const COUNTER_APP_ID = 'a2b93d1da68bc052f5b8650b5484103244ab9662c3a2e7112c71acc825f8f76e1073f4e0775a9212fff735f4fa30c228334a44d098e81a828839ef22f927f461ee44e4b2c6372d9d235c7beecaa08697cbb9d62685c409d70f3374b00d4abd7c00';
 
-      async function incrementCount(counter) {
-          await counter.query('{ "query": "mutation { increment(value: 1) }" }');
-      }
-
-      async function updateCount(counter) {
-          const response = await counter.query('{ "query": "query { value }" }');
-          document.getElementById('count').innerText
-              = JSON.parse(response).data.value;
-      }
-
       async function run() {
           await linera.default();
 
@@ -72,27 +59,33 @@
           document.getElementById('chain-id').innerText = await faucet.claimChain(client);
           const counter = await client.frontend().application(COUNTER_APP_ID);
 
-          const logContainer = document.getElementById('log-container');
+          const logs = document.getElementById('logs');
           const incrementBtn = document.getElementById('increment-btn');
           const blockTemplate = document.getElementById('block-template');
 
-          updateCount(counter);
+          function addLogEntry(block) {
+              const entry = logs.querySelectorAll('template')[0].content.cloneNode(true);
+              entry.querySelectorAll('.height')[0].textContent = block.height;
+              entry.querySelectorAll('.hash')[0].textContent = block.hash;
+              logs.insertBefore(entry, logs.firstChild);
+          }
+
+          async function updateCount() {
+              const response = await counter.query('{ "query": "query { value }" }');
+              document.getElementById('count').innerText
+                  = JSON.parse(response).data.value;
+          }
+
+          updateCount();
           client.onNotification(notification => {
               let newBlock = notification.reason.NewBlock;
               if (!newBlock) return;
               addLogEntry(newBlock);
-              updateCount(counter);
+              updateCount();
           });
 
-          function addLogEntry(block) {
-              const entry = blockTemplate.content.cloneNode(true);
-              entry.querySelectorAll('.height')[0].textContent = block.height;
-              entry.querySelectorAll('.hash')[0].textContent = block.hash;
-              logContainer.insertBefore(entry, logContainer.firstChild);
-          }
-
           incrementBtn.addEventListener('click', () => {
-              incrementCount(counter);
+              counter.query('{ "query": "mutation { increment(value: 1) }" }');
           });
       }
 
