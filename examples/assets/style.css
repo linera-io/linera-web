@@ -104,7 +104,7 @@ h1::before {
     display: block;
     width: 60px;
     height: 79px;
-    background-image: url(/arrow.svg);
+    background-image: url(./arrow.svg);
     content: '';
     animation: 1s infinite alternate breathe ease-out;
     padding-bottom: 0.1em;
@@ -116,12 +116,6 @@ h1::before {
     }
 
     to {
-        scale: 120%;
+        scale: 110%;
     }
 }
-
-.ui {
-    display: flex;
-    flex-direction: column;
-}
-
