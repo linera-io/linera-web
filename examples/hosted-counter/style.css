@@ -29,10 +29,10 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 2em;
+    padding: 2rem;
 }
 
-h2 {
+h1 {
     font-size: 5rem;
     font-family: 'Epilogue', serif;
     font-weight: 500;
@@ -41,8 +41,7 @@ h2 {
 }
 
 p {
-    margin: 1rem 0.5rem;
-    margin-right: 1rem;
+    margin: 1rem 0;
     max-width: 20rem;
 }
 
@@ -76,19 +75,13 @@ button:hover {
     border-radius: 24px;
     display: flex;
     flex-direction: column;
-    min-width: 40vw;
     min-height: 20rem;
-    padding: 0.5rem;
     padding: 1.5rem;
-}
-
-.log-container {
-    border-radius: 12px;
     overflow: hidden;
 }
 
-#chain-id {
-    font-family: monospace;
+.log-panel>* {
+    white-space: nowrap;
 }
 
 .log-entry {
@@ -102,17 +95,19 @@ button:hover {
     min-width: 3em;
 }
 
-.hash {
+.hex {
     font-family: monospace;
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.arrow {
+h1::before {
+    display: block;
+    width: 60px;
     height: 79px;
-    width: 42px;
-    aspect-ratio: inherit;
+    background-image: url(/arrow.svg);
+    content: '';
     animation: 1s infinite alternate breathe ease-out;
-    will-change: transform;
+    padding-bottom: 0.1em;
 }
 
 @keyframes breathe {
@@ -125,21 +120,8 @@ button:hover {
     }
 }
 
-@media (max-width: 992px) {
-    .content {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-around;
-    }
-}
-
 .ui {
     display: flex;
     flex-direction: column;
 }
 
-@media (max-width: 992px) {
-    .ui {
-        align-items: center;
-    }
-}
