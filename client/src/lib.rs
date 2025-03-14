@@ -6,15 +6,20 @@ This module defines the client API for the Web extension.
 // ensure the generated code will return a `Promise`.
 #![allow(clippy::unused_async)]
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, future::Future, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
+use linera_base::identifiers::ApplicationId;
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
     client_options::ClientOptions,
     wallet::Wallet,
 };
-use linera_core::node::{ValidatorNode as _, ValidatorNodeProvider as _};
+use linera_core::{
+    data_types::ClientOutcome,
+    node::{ValidatorNode as _, ValidatorNodeProvider as _},
+};
+use linera_faucet_client::Faucet;
 use linera_views::store::WithError;
 use serde::ser::Serialize as _;
 use wasm_bindgen::prelude::*;
@@ -24,12 +29,13 @@ use web_sys::{js_sys, wasm_bindgen};
 type WebStorage =
     linera_storage::DbStorage<linera_views::memory::MemoryStore, linera_storage::WallClock>;
 
+type JsResult<T> = Result<T, JsError>;
+
 async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error>
 {
     linera_storage::DbStorage::initialize(
         linera_views::memory::MemoryStoreConfig::new(1),
         "linera",
-        b"",
         Some(linera_execution::WasmRuntime::Wasmer),
     )
     .await
@@ -56,6 +62,8 @@ pub const OPTIONS: ClientOptions = ClientOptions {
     blanket_message_policy: linera_core::client::BlanketMessagePolicy::Accept,
     restrict_chain_ids_to: None,
     long_lived_services: false,
+    blob_download_timeout: std::time::Duration::from_millis(1000),
+    grace_period: linera_core::DEFAULT_GRACE_PERIOD,
 
     // TODO(linera-protocol#2944): separate these out from the
     // `ClientOptions` struct, since they apply only to the CLI/native
@@ -70,14 +78,77 @@ pub const OPTIONS: ClientOptions = ClientOptions {
 #[wasm_bindgen(js_name = Wallet)]
 pub struct JsWallet(PersistentWallet);
 
+#[wasm_bindgen(js_name = Faucet)]
+pub struct JsFaucet(Faucet);
+
+#[wasm_bindgen(js_class = "Faucet")]
+impl JsFaucet {
+    #[wasm_bindgen(constructor)]
+    #[must_use]
+    pub fn new(url: String) -> JsFaucet {
+        JsFaucet(Faucet::new(url))
+    }
+
+    /// Creates a new wallet from the faucet.
+    ///
+    /// # Errors
+    /// If we couldn't retrieve the genesis config from the faucet.
+    #[wasm_bindgen(js_name = createWallet)]
+    pub async fn create_wallet(&self) -> JsResult<JsWallet> {
+        Ok(JsWallet(PersistentWallet::new(
+            linera_client::wallet::Wallet::new(self.0.genesis_config().await?, None),
+        )))
+    }
+
+    // TODO: figure out a way to alias or specify this string for TypeScript
+    /// Claims a new chain from the faucet, with a new keypair and some tokens.
+    ///
+    /// # Errors
+    /// - if we fail to get the list of current validators from the faucet
+    /// - if we fail to claim the chain from the faucet
+    /// - if we fail to persist the new chain or keypair to the wallet
+    #[wasm_bindgen(js_name = claimChain)]
+    pub async fn claim_chain(&self, client: &mut Client) -> JsResult<String> {
+        use linera_client::persistent::LocalPersistExt as _;
+        let mut context = client.client_context.lock().await;
+        let key_pair = context.wallet.generate_key_pair();
+        let owner: linera_base::identifiers::Owner = key_pair.public().into();
+        tracing::info!(
+            "Requesting a new chain for owner {} using the faucet at address {}",
+            owner,
+            self.0.url(),
+        );
+        context
+            .wallet
+            .mutate(|wallet| wallet.add_unassigned_key_pair(key_pair))
+            .await?;
+        let outcome = self.0.claim(&owner).await?;
+        let validators = self.0.current_validators().await?;
+        context
+            .assign_new_chain_to_key(
+                outcome.chain_id,
+                outcome.message_id,
+                owner,
+                Some(validators),
+            )
+            .await?;
+        context
+            .wallet
+            .mutate(|wallet| wallet.set_default_chain(outcome.chain_id))
+            .await??;
+        context.client.track_chain(outcome.chain_id);
+        Ok(outcome.chain_id.to_string())
+    }
+}
+
 #[wasm_bindgen(js_class = "Wallet")]
 impl JsWallet {
     /// Creates and persists a new wallet from the given JSON string.
     ///
     /// # Errors
     /// If the wallet deserialization fails.
-    #[wasm_bindgen]
-    pub async fn create(wallet: &str) -> Result<JsWallet, JsError> {
+    #[wasm_bindgen(js_name = fromJson)]
+    pub async fn from_json(wallet: &str) -> Result<JsWallet, JsError> {
         Ok(JsWallet(PersistentWallet::new(serde_json::from_str(
             wallet,
         )?)))
@@ -144,25 +215,25 @@ impl Client {
 
     /// Set a callback to be called when a notification is received
     /// from the network.
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = onNotification)]
     pub fn on_notification(&self, handler: js_sys::Function) {
         let this = self.clone();
         wasm_bindgen_futures::spawn_local(async move {
             let mut notifications = this
                 .default_chain_client()
                 .await
-                .unwrap_throw()
+                .unwrap()
                 .subscribe()
                 .await
-                .unwrap_throw();
+                .unwrap();
             while let Some(notification) = notifications.next().await {
                 tracing::debug!("received notification: {notification:?}");
                 handler
                     .call1(
                         &JsValue::null(),
-                        &serde_wasm_bindgen::to_value(&notification).unwrap_throw(),
+                        &serde_wasm_bindgen::to_value(&notification).unwrap(),
                     )
-                    .unwrap_throw();
+                    .unwrap();
             }
         });
     }
@@ -174,6 +245,34 @@ impl Client {
             .default_chain()
             .expect("A default chain should be configured");
         Ok(client_context.make_chain_client(chain_id)?)
+    }
+
+    async fn apply_client_command<Fut, T, E>(
+        &self,
+        chain_client: &ChainClient,
+        mut command: impl FnMut() -> Fut,
+    ) -> Result<Result<T, E>, linera_client::Error>
+    where
+        Fut: Future<Output = Result<ClientOutcome<T>, E>>,
+    {
+        let result = loop {
+            use ClientOutcome::{Committed, WaitForTimeout};
+            let timeout = match command().await {
+                Ok(Committed(outcome)) => break Ok(Ok(outcome)),
+                Ok(WaitForTimeout(timeout)) => timeout,
+                Err(e) => break Ok(Err(e)),
+            };
+            let mut stream = chain_client.subscribe().await?;
+            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
+        };
+
+        self.client_context
+            .lock()
+            .await
+            .update_wallet(chain_client)
+            .await?;
+
+        result
     }
 
     /// Gets an object implementing the API for Web frontends.
@@ -191,6 +290,12 @@ static RESPONSE_SERIALIZER: serde_wasm_bindgen::Serializer = serde_wasm_bindgen:
     .serialize_maps_as_objects(true);
 
 #[wasm_bindgen]
+pub struct Application {
+    client: Client,
+    id: ApplicationId,
+}
+
+#[wasm_bindgen]
 impl Frontend {
     /// Gets the version information of the validators of the current network.
     ///
@@ -199,8 +304,8 @@ impl Frontend {
     ///
     /// # Panics
     /// If no default chain is set for the current wallet.
-    #[wasm_bindgen]
-    pub async fn validator_version_info(&self) -> Result<JsValue, JsError> {
+    #[wasm_bindgen(js_name = validatorVersionInfo)]
+    pub async fn validator_version_info(&self) -> JsResult<JsValue> {
         let mut client_context = self.0.client_context.lock().await;
         let chain_id = client_context
             .wallet()
@@ -209,7 +314,7 @@ impl Frontend {
         let chain_client = client_context.make_chain_client(chain_id)?;
         chain_client.synchronize_from_validators().await?;
         let result = chain_client.local_committee().await;
-        client_context.update_and_save_wallet(&chain_client).await?;
+        client_context.update_wallet(&chain_client).await?;
         let committee = result?;
         let node_provider = client_context.make_node_provider();
 
@@ -240,6 +345,21 @@ impl Frontend {
         Ok(validator_versions.serialize(&RESPONSE_SERIALIZER)?)
     }
 
+    /// Retrieves an application for querying.
+    ///
+    /// # Errors
+    /// If the application ID is invalid.
+    #[wasm_bindgen]
+    pub async fn application(&self, id: &str) -> JsResult<Application> {
+        Ok(Application {
+            client: self.0.clone(),
+            id: id.parse()?,
+        })
+    }
+}
+
+#[wasm_bindgen]
+impl Application {
     /// Performs a query against an application's service.
     ///
     /// # Errors
@@ -251,81 +371,32 @@ impl Frontend {
     #[wasm_bindgen]
     // TODO(14) allow passing bytes here rather than just strings
     // TODO(15) a lot of this logic is shared with `linera_service::node_service`
-    pub async fn query_application(
-        &self,
-        application_id: &str,
-        query: &str,
-    ) -> Result<String, JsError> {
-        let chain_client = self.0.default_chain_client().await?;
-        let response = chain_client
+    pub async fn query(&self, query: &str) -> JsResult<String> {
+        let chain_client = self.client.default_chain_client().await?;
+
+        let linera_execution::QueryOutcome {
+            response: linera_execution::QueryResponse::User(response),
+            operations,
+        } = chain_client
             .query_application(linera_execution::Query::User {
-                application_id: application_id.parse()?,
+                application_id: self.id,
                 bytes: query.as_bytes().to_vec(),
             })
-            .await?;
-        let linera_execution::Response::User(response) = response else {
+            .await?
+        else {
             panic!("system response to user query")
         };
-        Ok(String::from_utf8(response)?)
-    }
 
-    /// Mutate an application's state with the given mutation.
-    ///
-    /// # Errors
-    /// If the application ID or mutation is invalid.
-    ///
-    /// # Panics
-    /// If the response from the service is not a GraphQL response
-    /// containing operations to execute.
-    #[wasm_bindgen]
-    // TODO(linera-protocol#2911) this function assumes GraphQL service output
-    pub async fn mutate_application(
-        &self,
-        application_id: &str,
-        mutation: &str,
-    ) -> Result<(), JsError> {
-        fn array_to_bytes(array: &[serde_json::Value]) -> Vec<u8> {
-            array
-                .iter()
-                .map(|value| value.as_u64().unwrap().try_into().unwrap())
-                .collect()
+        if !operations.is_empty() {
+            let _hash = self
+                .client
+                .apply_client_command(&chain_client, || {
+                    chain_client.execute_operations(operations.clone(), vec![])
+                })
+                .await??;
         }
 
-        let chain_client = self.0.default_chain_client().await?;
-        let application_id = application_id.parse()?;
-        let response = chain_client
-            .query_application(linera_execution::Query::User {
-                application_id,
-                bytes: mutation.as_bytes().to_vec(),
-            })
-            .await?;
-        let linera_execution::Response::User(response) = response else {
-            panic!("system response to user query")
-        };
-        let response: serde_json::Value = serde_json::from_slice(&response)?;
-        let data = &response["data"];
-        tracing::info!("data: {data:?}");
-        let operations: Vec<_> = data
-            .as_object()
-            .unwrap()
-            .values()
-            .map(|value| linera_execution::Operation::User {
-                application_id,
-                bytes: array_to_bytes(value.as_array().unwrap()),
-            })
-            .collect();
-
-        let _hash = loop {
-            use linera_core::data_types::ClientOutcome::{Committed, WaitForTimeout};
-            let timeout = match chain_client.execute_operations(operations.clone()).await? {
-                Committed(certificate) => break certificate.value().hash(),
-                WaitForTimeout(timeout) => timeout,
-            };
-            let mut stream = chain_client.subscribe().await?;
-            linera_client::util::wait_for_next_round(&mut stream, timeout).await;
-        };
-
-        Ok(())
+        Ok(String::from_utf8(response)?)
     }
 }
 

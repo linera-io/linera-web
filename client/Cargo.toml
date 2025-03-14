@@ -30,6 +30,8 @@ tokio = "1.40.0"
 tracing = "0.1.40"
 wasm-bindgen = "0.2.95"
 wasm-bindgen-futures = "0.4"
+wasmtimer = "0.4.1"
+web-time = "1.1.0"
 
 [dependencies.linera-base]
 path = "../linera-protocol/linera-base"
@@ -50,7 +52,10 @@ features = ["web", "wasmer"]
 
 [dependencies.linera-execution]
 path = "../linera-protocol/linera-execution"
-features = ["web", "wasmer", "test"]
+features = ["web", "wasmer"]
+
+[dependencies.linera-faucet-client]
+path = "../linera-protocol/linera-faucet/client"
 
 [dependencies.linera-rpc]
 path = "../linera-protocol/linera-rpc"
