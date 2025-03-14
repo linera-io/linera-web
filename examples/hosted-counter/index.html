@@ -75,25 +75,17 @@
           }
 
           async function updateCount() {
-              try {
-                  const response = await counter.query('{ "query": "query { value }" }');
-                  document.getElementById('count').innerText
-                      = JSON.parse(response).data.value;
-              } catch (e) {
-                  console.error(e);
-              }
+              const response = await counter.query('{ "query": "query { value }" }');
+              document.getElementById('count').innerText
+                  = JSON.parse(response).data.value;
           }
 
           updateCount();
           client.onNotification(notification => {
-              try {
-                  let newBlock = notification.reason.NewBlock;
-                  if (!newBlock) return;
-                  addLogEntry(newBlock);
-                  updateCount();
-              } catch (e) {
-                  console.error(e);
-              }
+              let newBlock = notification.reason.NewBlock;
+              if (!newBlock) return;
+              addLogEntry(newBlock);
+              updateCount();
           });
 
           incrementButton.addEventListener('click', () => {
