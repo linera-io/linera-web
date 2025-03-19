@@ -31,7 +31,7 @@
 
      async function incrementCount() {
          await linera.callClientFunction(
-             'mutate_application',
+             'query_application',
              COUNTER_APP_ID,
              '{ "query": "mutation { increment(value: 1) }" }',
          );
