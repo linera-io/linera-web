@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linera | Fungible</title>
+    <link href="/style.css" rel="stylesheet">
+    <link href="/icon.png" rel="icon">
+    <style type="text/css">
+      input {
+          background-color: #fffef2;
+          border-style: solid;
+      }
+
+      .ui #transfer {
+          display: flex;
+          flex-direction: column;
+          max-width: 20rem;
+      }
+
+      .ui #account-id {
+          max-width: 20rem;
+          overflow-x: scroll;
+      }
+
+      .ui label, .ui input[type="submit"] {
+          margin-top: 0.5rem;
+      }
+
+      .ui label input {
+          width: 100%;
+      }
+
+      .ui #symbol {
+          font-variant-caps: all-small-caps;
+      }
+
+      .ui #account-id {
+          white-space: pre;
+      }
+
+      #errors {
+          list-style-type: none;
+          margin: 1rem 0;
+          font-family: monospace;
+          max-width: 40em;
+      }
+
+      #errors li {
+          border: 1px solid red;
+          color: red;
+          padding: 0.3em;
+          margin: 0.3em 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="description">
+          <h1>Fungible</h1>
+          <p>
+            This is an application tracking the transfer of fungible tokens between accounts.
+          </p>
+
+          <p>Send funds to a friend and watch their balance update in real time.</p>
+        </div>
+        <div class="ui">
+          <h3>Account</h3>
+          <p class="hex" id="account-id">loading account…</p>
+
+          <h4>Balance</h4>
+          <p><span id="balance"><code>retrieving funds…</code></span> <span id="symbol">NAT</span></p>
+
+          <h4>Transfer</h4>
+          <form id="transfer">
+            <label>
+              Recipient
+              <input type="text" name="recipient">
+            </label>
+
+            <label>
+              Amount
+              <input type="text" name="amount" inputmode="decimal" pattern="\d+(\.\d*)?">
+            </label>
+
+            <input type="submit" value="Send">
+          </form>
+
+          <ul id="errors">
+            <template>
+              <li class="message"></li>
+            </template>
+          </ul>
+        </div>
+      </div>
+
+      <div class="logs">
+        <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
+        <ul id="logs">
+          <template>
+            <li>
+              <span class="height"></span>: <span class="code hash"></span>
+            </li>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <script type="importmap">
+      {
+          "imports": {
+              "@linera/client": "./js/@linera/client/linera_web.js"
+          }
+      }
+    </script>
+
+    <script type="module">
+      import * as linera from '@linera/client';
+
+      const NATIVE_FUNGIBLE_APP_ID = '58299de6f0c2e9bddcee29aff497c7d47c728ec3b3ded01a4d45948a10a56221e7b40ec580a96e033c2f03c3464872d5a001e16506320a13b1264f153d64e3c9c398d551aeef7a38d0f5e26f315e63bb2357b7ed14901a3a580826a4199488ea00';
+
+      function gql(query, variables = {}) {
+          let object;
+
+          if (typeof query === 'string')
+              // use as function with variables
+              object = { query, variables };
+          else
+              // use as template literal
+              object = {
+                  query: query[0] + query.slice(1)
+                      .map((v, i) => `${JSON.stringify(variables[i])}${v}`)
+                      .join(''),
+              };
+
+          return JSON.stringify(object);
+      }
+
+      function prependEntry(parent, variables) {
+          console.log('prependEntry', { parent, variables });
+          const entry = parent.querySelector('template').content.cloneNode(true);
+          for (const [name, value] of Object.entries(variables)) {
+              const element = entry.querySelector(`.${name}`);
+              if (element) element.textContent = value;
+          }
+
+          parent.insertBefore(entry, parent.firstChild);
+      }
+
+      async function updateBalance(application) {
+          const response = await application.query(gql`query { accounts { entries { key value } } }`);
+          console.log(response);
+          document.querySelector('#balance').innerText = (+JSON.parse(response).data.accounts.entries[0].value).toFixed(2);
+      }
+
+      async function transfer(application, donor, amount, recipient) {
+          const [owner, chainId] = recipient.split(/@/);
+          recipient = { owner: `User:${owner}`, chainId };
+
+          const query = gql(`mutation(
+              $donor: AccountOwner!,
+              $amount: Amount!,
+              $recipient: FungibleAccount!,
+          ) {
+              transfer(owner: $donor, amount: $amount, targetAccount: $recipient)
+          }`, {
+              donor,
+              amount,
+              recipient,
+          });
+          let errors;
+          try {
+              const result = await application.query(query);
+              errors = result.errors || [];
+              console.log('query done, result:', result);
+          } catch (e) {
+              console.error(e);
+              errors = [{ message: e.message }];
+          }
+          const errorContainer = document.querySelector('#errors');
+          for (const error of errors)
+              prependEntry(errorContainer, error);
+      };
+
+      async function run() {
+          await linera.default();
+          const faucet = await new linera.Faucet('https://faucet.mini-net.linera.net');
+          const wallet = await faucet.createWallet();
+          const client = await new linera.Client(wallet);
+          const chainId = await faucet.claimChain(client);
+          document.querySelector('#chain-id').innerText = chainId;
+
+          const application = await client.frontend().application(NATIVE_FUNGIBLE_APP_ID);
+
+          client.onNotification(notification => {
+              let newBlock = notification.reason.NewBlock;
+              if (!newBlock) return;
+              prependEntry(document.querySelector('#logs'), newBlock);
+              updateBalance(application);
+          });
+
+          const me = await client.identity();
+          document.querySelector('#account-id').textContent = `${me}@${chainId}`;
+
+          await client.transfer({
+              recipient: {
+                  chain_id: chainId,
+                  owner: `User:${me}`,
+              },
+              amount: 10,
+          });
+
+          document.querySelector('form#transfer').addEventListener('submit', (event) => {
+              event.preventDefault();
+              transfer(
+                  application,
+                  `User:${me}`,
+                  event.target.elements.amount.value,
+                  event.target.elements.recipient.value,
+              );
+          });
+      }
+
+      if (document.readyState === 'loading')
+          document.addEventListener('DOMContentLoaded', run);
+      else
+          run();
+    </script>
+  </body>
+</html>
