@@ -74,6 +74,7 @@
               logs.insertBefore(entry, logs.firstChild);
           }
 
+
           async function updateCount() {
               const response = await counter.query('{ "query": "query { value }" }');
               document.getElementById('count').innerText
