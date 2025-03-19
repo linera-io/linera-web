@@ -31,13 +31,13 @@
         </div>
       </div>
 
-      <div class="log-panel">
+      <div class="logs">
         <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
-        <div class="logs" id="logs">
-          <template id="block-template">
-            <div class="log-entry">
+        <ul id="logs">
+          <template>
+            <li>
               <span class="height"></span>: <span class="code hash"></span>
-            </div>
+            </li>
           </template>
         </div>
       </div>
