@@ -13,8 +13,13 @@
           max-width: 20rem;
       }
 
-      .ui #account-id {
+      .ui .account-details {
+          display: flex;
+          align-items: center;
           max-width: 20rem;
+      }
+
+      .ui #account-id {
           overflow-x: scroll;
       }
 
@@ -32,6 +37,9 @@
 
       .ui #account-id {
           white-space: pre;
+          flex-grow: 1;
+          padding: 0.5rem 0;
+          margin: 0.5rem 0;
       }
 
       #errors {
@@ -46,6 +54,19 @@
           color: red;
           padding: 0.3em;
           margin: 0.3em 0;
+      }
+
+      #copy-account {
+          cursor: pointer;
+          margin-left: 0.5em;
+          padding: 0.1rem 0.3rem;
+          background-color: hsl(179, 54%, 38%);
+      }
+
+      .ui .account-details {
+          display: flex;
+          align-items: center;
+          max-width: 20rem;
       }
     </style>
   </head>
@@ -62,7 +83,11 @@
         </div>
         <div class="ui">
           <h3>Account</h3>
-          <p class="hex" id="account-id">loading account…</p>
+
+          <div class="account-details">
+            <p class="hex" id="account-id">loading account…</p>
+            <button id="copy-account">⎘</button>
+          </div>
 
           <h4>Balance</h4>
           <p>
@@ -182,6 +207,11 @@
                   event.target.elements.amount.value,
                   event.target.elements.recipient.value,
               );
+          });
+
+          document.querySelector('#copy-account').addEventListener('click', (event) => {
+              event.preventDefault();
+              navigator.clipboard.writeText(document.querySelector('#account-id').textContent);
           });
 
           await linera.default();
