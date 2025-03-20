@@ -215,6 +215,10 @@ impl Client {
 
     /// Set a callback to be called when a notification is received
     /// from the network.
+    ///
+    /// # Panics
+    /// If the handler function fails or we fail to subscribe to the
+    /// notification stream.
     #[wasm_bindgen(js_name = onNotification)]
     pub fn on_notification(&self, handler: js_sys::Function) {
         let this = self.clone();
