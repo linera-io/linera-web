@@ -7,11 +7,6 @@
     <link href="/style.css" rel="stylesheet">
     <link href="/icon.png" rel="icon">
     <style type="text/css">
-      input {
-          background-color: #fffef2;
-          border-style: solid;
-      }
-
       .ui #transfer {
           display: flex;
           flex-direction: column;
@@ -31,7 +26,7 @@
           width: 100%;
       }
 
-      .ui #symbol {
+      .ui #ticker-symbol {
           font-variant-caps: all-small-caps;
       }
 
@@ -70,7 +65,10 @@
           <p class="hex" id="account-id">loading account…</p>
 
           <h4>Balance</h4>
-          <p><span id="balance"><code>retrieving funds…</code></span> <span id="symbol">NAT</span></p>
+          <p>
+            <span id="balance"><code>retrieving funds…</code></span>
+            <span id="ticker-symbol"></span>
+          </p>
 
           <h4>Transfer</h4>
           <form id="transfer">
@@ -84,7 +82,7 @@
               <input type="text" name="amount" inputmode="decimal" pattern="\d+(\.\d*)?">
             </label>
 
-            <input type="submit" value="Send">
+            <input type="submit" value="Send" disabled>
           </form>
 
           <ul id="errors">
@@ -149,9 +147,10 @@
       }
 
       async function updateBalance(application) {
-          const response = await application.query(gql`query { accounts { entries { key value } } }`);
+          const response = JSON.parse(await application.query(gql`query { tickerSymbol, accounts { entries { key value } } }`));
           console.log(response);
-          document.querySelector('#balance').innerText = (+JSON.parse(response).data.accounts.entries[0].value).toFixed(2);
+          document.querySelector('#ticker-symbol').textContent = response.data.tickerSymbol;
+          document.querySelector('#balance').textContent = (+response.data.accounts.entries[0].value).toFixed(2);
       }
 
       async function transfer(application, donor, amount, recipient) {
@@ -185,6 +184,20 @@
       };
 
       async function run() {
+          const transferForm = document.querySelector('form#transfer');
+          const submitButton = transferForm.querySelector('input[type="submit"]');
+          submitButton.disabled = true;
+
+          transferForm.addEventListener('submit', (event) => {
+              event.preventDefault();
+              transfer(
+                  application,
+                  `User:${me}`,
+                  event.target.elements.amount.value,
+                  event.target.elements.recipient.value,
+              );
+          });
+
           await linera.default();
           const faucet = await new linera.Faucet('https://faucet.mini-net.linera.net');
           const wallet = await faucet.createWallet();
@@ -201,6 +214,8 @@
               updateBalance(application);
           });
 
+          submitButton.disabled = false;
+
           const me = await client.identity();
           document.querySelector('#account-id').textContent = `${me}@${chainId}`;
 
@@ -210,16 +225,6 @@
                   owner: `User:${me}`,
               },
               amount: 10,
-          });
-
-          document.querySelector('form#transfer').addEventListener('submit', (event) => {
-              event.preventDefault();
-              transfer(
-                  application,
-                  `User:${me}`,
-                  event.target.elements.amount.value,
-                  event.target.elements.recipient.value,
-              );
           });
       }
 

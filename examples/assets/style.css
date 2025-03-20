@@ -22,7 +22,7 @@ body {
     height: 100%;
     padding: 0.5rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(496px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
 .content {
@@ -45,10 +45,6 @@ p {
     max-width: 20rem;
 }
 
-.counter {
-    font-size: 1.25rem;
-}
-
 button, input[type="submit"] {
     background-color: rgb(222, 42, 2);
     color: #f3eee2;
@@ -63,6 +59,10 @@ button, input[type="submit"] {
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
     width: fit-content;
     height: fit-content;
+}
+
+button[disabled], input[type="submit"][disabled] {
+    background-color: gray;
 }
 
 input[type="text"] {
@@ -112,6 +112,11 @@ h1::before {
     content: '';
     animation: 1s infinite alternate breathe ease-out;
     padding-bottom: 0.1em;
+}
+
+input {
+    background-color: #fffef2;
+    border-style: solid;
 }
 
 @keyframes breathe {
