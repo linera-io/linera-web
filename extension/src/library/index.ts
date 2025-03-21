@@ -52,11 +52,11 @@ export async function load(): Promise<void> {
   await loaded;
 }
 
-export async function callClientFunction(func: string, ...args: any): Promise<any> {
+export async function queryApplication(applicationId: string, query: string): Promise<string> {
   return await sendRequest({
-    type: 'client_call',
-    function: func,
-    arguments: args,
+    type: 'query_application',
+    applicationId,
+    query,
   });
 }
 

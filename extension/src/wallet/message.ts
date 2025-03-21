@@ -9,11 +9,11 @@ export type SetWalletRequest = {
   wallet: string;
 };
 
-export type CallRequest = {
+export type QueryApplicationRequest = {
   target: string;
-  type: 'client_call';
-  function: string;
-  arguments: [any];
+  type: 'query_application';
+  applicationId: string;
+  query: string;
 };
 
 export * as guards from "./message.guard";
