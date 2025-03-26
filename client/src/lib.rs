@@ -142,7 +142,9 @@ impl JsFaucet {
             let (listener, listen_handle, mut notifications) = chain_client.listen().await.unwrap();
             wasm_bindgen_futures::spawn_local(async move {
                 while let Some(notification) = notifications.next().await {
-                    if let linera_core::worker::Reason::NewIncomingBundle { .. } = notification.reason {
+                    if let linera_core::worker::Reason::NewIncomingBundle { .. } =
+                        notification.reason
+                    {
                         chain_client.process_inbox().await.unwrap();
                     }
                 }
@@ -303,20 +305,26 @@ impl Client {
     pub async fn transfer(&self, options: wasm_bindgen::JsValue) -> JsResult<()> {
         let params: TransferParams = serde_wasm_bindgen::from_value(options)?;
         let chain_client = self.default_chain_client().await?;
-        
-        let _hash = self.apply_client_command(&chain_client, || chain_client.transfer(
-            params.donor,
-            linera_base::data_types::Amount::from_tokens(params.amount.into()),
-            linera_execution::system::Recipient::Account(params.recipient),
-        )).await??;
+
+        let _hash = self
+            .apply_client_command(&chain_client, || {
+                chain_client.transfer(
+                    params.donor,
+                    linera_base::data_types::Amount::from_tokens(params.amount.into()),
+                    linera_execution::system::Recipient::Account(params.recipient),
+                )
+            })
+            .await??;
 
         Ok(())
     }
 
     pub async fn identity(&self) -> JsResult<JsValue> {
-        Ok(serde_wasm_bindgen::to_value(&self.default_chain_client().await?.identity().await?)?)
+        Ok(serde_wasm_bindgen::to_value(
+            &self.default_chain_client().await?.identity().await?,
+        )?)
     }
-        
+
     /// Gets an object implementing the API for Web frontends.
     #[wasm_bindgen]
     #[must_use]
