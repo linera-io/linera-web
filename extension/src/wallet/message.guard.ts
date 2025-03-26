@@ -2,7 +2,7 @@
  * Generated type guards for "message.ts".
  * WARNING: Do not manually change this file.
  */
-import { GetWalletRequest, SetWalletRequest, CallRequest } from "./message";
+import { GetWalletRequest, SetWalletRequest, QueryApplicationRequest } from "./message";
 
 export function isGetWalletRequest(obj: unknown): obj is GetWalletRequest {
     const typedObj = obj as GetWalletRequest
@@ -27,15 +27,15 @@ export function isSetWalletRequest(obj: unknown): obj is SetWalletRequest {
     )
 }
 
-export function isCallRequest(obj: unknown): obj is CallRequest {
-    const typedObj = obj as CallRequest
+export function isQueryApplicationRequest(obj: unknown): obj is QueryApplicationRequest {
+    const typedObj = obj as QueryApplicationRequest
     return (
         (typedObj !== null &&
             typeof typedObj === "object" ||
             typeof typedObj === "function") &&
         typeof typedObj["target"] === "string" &&
-        typedObj["type"] === "client_call" &&
-        typeof typedObj["function"] === "string" &&
-        Array.isArray(typedObj["arguments"])
+        typedObj["type"] === "query_application" &&
+        typeof typedObj["applicationId"] === "string" &&
+        typeof typedObj["query"] === "string"
     )
 }

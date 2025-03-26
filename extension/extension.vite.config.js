@@ -18,16 +18,12 @@ export default defineConfig({
                 'offscreen': resolve(__dirname, 'src/service-worker/offscreen/index.html'),
                 'content-script': resolve(__dirname, 'src/content-script/index.ts'),
                 'service-worker': resolve(__dirname, 'src/service-worker/index.ts'),
-                // HACK: ensure this is a separate output chunk
-                'client': resolve(__dirname, 'src/client.ts'),
+                'linera-client': '@linera/client',
             },
             preserveEntrySignatures: 'strict',
             output: {
                 minifyInternalExports: false,
                 entryFileNames: '[name].js',
-                manualChunks: {
-                //    'linera-client': ['@linera/client'],
-                },
             },
         },
     },

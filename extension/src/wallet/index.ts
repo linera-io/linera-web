@@ -1,7 +1,6 @@
-import * as wasm from '@/client';
-import type { Client } from '@/client';
+import * as linera from '@linera/client';
+import type { Client } from '@linera/client';
 
-import wasmModuleUrl from '@linera/client/pkg/linera_web_bg.wasm?url';
 import * as guard from './message.guard';
 
 export class Server {
@@ -11,9 +10,9 @@ export class Server {
 
   async setWallet(wallet: string) {
     this.wallet = wallet;
-    await wasm;
-    this.client = await new wasm.Client(await wasm.Wallet.create(wallet));
-    this.client.on_notification((notification: any) => {
+    await linera;
+    this.client = await new linera.Client(await linera.Wallet.fromJson(wallet));
+    this.client.onNotification((notification: any) => {
       console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
       for (const subscriber of this.subscribers.values()) {
         subscriber.postMessage(notification);
@@ -21,39 +20,8 @@ export class Server {
     });
   }
 
-  async callClientFunction(sender: chrome.runtime.MessageSender, functionName: string, ...args: any): Promise<any> {
-    if (!this.client) {
-      console.warn('No wallet set');
-      return;
-    }
-
-    let target;
-    if (sender.origin === self.location.origin) {
-      console.log('Received call from extension', functionName, args);
-      target = this.client;
-    } else {
-      console.log('Received call from content script', functionName, args);
-      target = this.client.frontend();
-    }
-
-    if (!(functionName in target)) {
-      console.error('Attempted to call undefined function', functionName);
-      return;
-    }
-
-    let func = target[functionName as keyof typeof target] as (...args: any) => Promise<any>;
-
-    console.debug('Calling function', functionName);
-
-    const result = await func.apply(target, args);
-    console.debug('Got result', result);
-    return result;
-  }
-
   async init() {
-    await (await wasm).default({
-      module_or_path: (await fetch(wasmModuleUrl)).arrayBuffer(),
-    });
+    await (await linera).default();
 
     chrome.runtime.onConnect.addListener(port => {
       if (port.name !== 'notifications') {
@@ -69,11 +37,26 @@ export class Server {
       if (message.target !== 'wallet')
         return false;
 
-      if (guard.isCallRequest(message)) {
-        this.callClientFunction(sender, message.function, ...message.arguments)
-          .then(respond);
+      if (guard.isQueryApplicationRequest(message)) {
+        (async () => {
+          if (!this.client) {
+            console.warn('client went away');
+            return;
+          }
+          
+          const application = await this.client.frontend()
+            .application(message.applicationId);
+          respond(await application.query(message.query));
+        })();
         return true;
-      } else if (guard.isSetWalletRequest(message))
+      }
+      
+      if (sender.origin !== self.location.origin) {
+        console.error('Page outside extension attempted to control client!');
+        return false;
+      }
+
+      if (guard.isSetWalletRequest(message))
         this.setWallet(message.wallet);
       else if (guard.isGetWalletRequest(message))
         respond(this.wallet);
