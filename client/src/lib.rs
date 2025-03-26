@@ -100,7 +100,7 @@ impl JsFaucet {
         )))
     }
 
-    // TODO: figure out a way to alias or specify this string for TypeScript
+    // TODO(#40): figure out a way to alias or specify this string for TypeScript
     /// Claims a new chain from the faucet, with a new keypair and some tokens.
     ///
     /// # Errors
@@ -373,8 +373,8 @@ impl Application {
     /// # Panics
     /// On internal protocol errors.
     #[wasm_bindgen]
-    // TODO(14) allow passing bytes here rather than just strings
-    // TODO(15) a lot of this logic is shared with `linera_service::node_service`
+    // TODO(#14) allow passing bytes here rather than just strings
+    // TODO(#15) a lot of this logic is shared with `linera_service::node_service`
     pub async fn query(&self, query: &str) -> JsResult<String> {
         let chain_client = self.client.default_chain_client().await?;
 
