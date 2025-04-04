@@ -45,6 +45,11 @@ p {
     max-width: 40rem;
 }
 
+em {
+    font-style: normal;
+    font-weight: bold;
+}
+
 button, input[type="submit"] {
     background-color: rgb(222, 42, 2);
     color: #f3eee2;
