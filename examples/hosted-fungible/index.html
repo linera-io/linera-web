@@ -10,13 +10,13 @@
       .ui #transfer {
           display: flex;
           flex-direction: column;
-          max-width: 20rem;
+          max-width: 40rem;
       }
 
       .ui .account-details {
           display: flex;
           align-items: center;
-          max-width: 20rem;
+          max-width: 40rem;
       }
 
       .ui #account-id {
@@ -66,7 +66,7 @@
       .ui .account-details {
           display: flex;
           align-items: center;
-          max-width: 20rem;
+          max-width: 40rem;
       }
     </style>
   </head>
@@ -76,10 +76,18 @@
         <div class="description">
           <h1>Fungible</h1>
           <p>
-            This is an application tracking the transfer of fungible tokens between accounts.
+            This application is a demo to showcase personal chains, real-time transfers,
+            and trustless user interfaces in Linera.
           </p>
-
-          <p>Send funds to a friend and watch their balance update in real time.</p>
+          <p><em>Send funds to a friend and watch their balance update in real time.</em></p>
+          <p>
+            This web page is hosting a Linera client connected with a Linera test network.
+            Each user is given an account on a new personal chain. To send and receive
+            tokens, the chain of a user is extended with new blocks. Blocks are validated
+            and synchronized over the Linera network in real time. Clients execute blocks
+            locally in a Wasm virtual machine, allowing the displayed balance to be refreshed
+            instantly and securely.
+          </p>
         </div>
         <div class="ui">
           <h3>Account</h3>
@@ -119,7 +127,7 @@
       </div>
 
       <div class="logs">
-        <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
+        <h2>Chain history for <code id="chain-id" class="hex">requesting a new microchain…</code></h2>
         <ul id="logs">
           <template>
             <li>
