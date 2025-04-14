@@ -13,7 +13,7 @@ use linera_base::identifiers::{ApplicationId, AccountOwner};
 
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
-    client_options::ClientOptions,
+    client_options::ClientContextOptions,
     wallet::Wallet,
 };
 use linera_core::{
@@ -34,8 +34,8 @@ type JsResult<T> = Result<T, JsError>;
 
 async fn get_storage() -> Result<WebStorage, <linera_views::memory::MemoryStore as WithError>::Error>
 {
-    linera_storage::DbStorage::initialize(
-        linera_views::memory::MemoryStoreConfig::new(1),
+    linera_storage::DbStorage::maybe_create_and_connect(
+        &linera_views::memory::MemoryStoreConfig::new(1),
         "linera",
         Some(linera_execution::WasmRuntime::Wasmer),
     )
@@ -48,15 +48,15 @@ type ChainClient =
     linera_core::client::ChainClient<linera_rpc::node_provider::NodeProvider, WebStorage>;
 
 // TODO(#13): get from user
-pub const OPTIONS: ClientOptions = ClientOptions {
+pub const OPTIONS: ClientContextOptions = ClientContextOptions {
     send_timeout: std::time::Duration::from_millis(4000),
     recv_timeout: std::time::Duration::from_millis(4000),
     max_pending_message_bundles: 10,
-    wasm_runtime: Some(linera_execution::WasmRuntime::Wasmer),
-    max_concurrent_queries: None,
+    // wasm_runtime: Some(linera_execution::WasmRuntime::Wasmer),
+    // max_concurrent_queries: None,
     max_loaded_chains: nonzero_lit::usize!(40),
-    max_stream_queries: 10,
-    cache_size: 1000,
+    // max_stream_queries: 10,
+    // cache_size: 1000,
     retry_delay: std::time::Duration::from_millis(1000),
     max_retries: 10,
     wait_for_outgoing_messages: false,
@@ -69,10 +69,7 @@ pub const OPTIONS: ClientOptions = ClientOptions {
     // TODO(linera-protocol#2944): separate these out from the
     // `ClientOptions` struct, since they apply only to the CLI/native
     // client
-    tokio_threads: Some(1),
-    command: linera_client::client_options::ClientCommand::Keygen,
     wallet_state_path: None,
-    storage_config: None,
     with_wallet: None,
 };
 
@@ -229,8 +226,8 @@ impl Client {
             OPTIONS,
             wallet,
         )));
-        ChainListener::new(ChainListenerConfig::default())
-            .run(client_context.clone(), storage)
+        ChainListener::new(ChainListenerConfig::default(), client_context.clone(), storage)
+            .run()
             .await;
         log::info!("Linera Web client successfully initialized");
         Ok(Self { client_context })
