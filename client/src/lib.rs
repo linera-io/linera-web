@@ -9,8 +9,7 @@ This module defines the client API for the Web extension.
 use std::{collections::HashMap, future::Future, sync::Arc};
 
 use futures::{lock::Mutex as AsyncMutex, stream::StreamExt};
-use linera_base::identifiers::{ApplicationId, AccountOwner};
-
+use linera_base::identifiers::{AccountOwner, ApplicationId};
 use linera_client::{
     chain_listener::{ChainListener, ChainListenerConfig, ClientContext as _},
     client_options::ClientContextOptions,
@@ -105,6 +104,9 @@ impl JsFaucet {
     /// - if we fail to get the list of current validators from the faucet
     /// - if we fail to claim the chain from the faucet
     /// - if we fail to persist the new chain or keypair to the wallet
+    ///
+    /// # Panics
+    /// If an error occurs in the chain listener task.
     #[wasm_bindgen(js_name = claimChain)]
     pub async fn claim_chain(&self, client: &mut Client) -> JsResult<String> {
         use linera_client::persistent::LocalPersistExt as _;
@@ -226,14 +228,18 @@ impl Client {
             OPTIONS,
             wallet,
         )));
-        ChainListener::new(ChainListenerConfig::default(), client_context.clone(), storage)
-            .run()
-            .await;
+        ChainListener::new(
+            ChainListenerConfig::default(),
+            client_context.clone(),
+            storage,
+        )
+        .run()
+        .await;
         log::info!("Linera Web client successfully initialized");
         Ok(Self { client_context })
     }
 
-    /// Set a callback to be called when a notification is received
+    /// Sets a callback to be called when a notification is received
     /// from the network.
     ///
     /// # Panics
@@ -299,6 +305,15 @@ impl Client {
         result
     }
 
+    /// Transfers funds from one account to another.
+    ///
+    /// `options` should be an options object of the form `{ donor,
+    /// recipient, amount }`; omitting `donor` will cause the funds to
+    /// come from the chain balance.
+    ///
+    /// # Errors
+    /// - if the options object is of the wrong form
+    /// - if the transfer fails
     #[wasm_bindgen]
     pub async fn transfer(&self, options: wasm_bindgen::JsValue) -> JsResult<()> {
         let params: TransferParams = serde_wasm_bindgen::from_value(options)?;
@@ -307,7 +322,9 @@ impl Client {
         let _hash = self
             .apply_client_command(&chain_client, || {
                 chain_client.transfer(
-                    params.donor.map(AccountOwner::Address32).unwrap_or(AccountOwner::CHAIN),
+                    params
+                        .donor
+                        .map_or(AccountOwner::CHAIN, AccountOwner::Address32),
                     linera_base::data_types::Amount::from_tokens(params.amount.into()),
                     linera_execution::system::Recipient::Account(params.recipient),
                 )
@@ -317,6 +334,10 @@ impl Client {
         Ok(())
     }
 
+    /// Gets the identity of the default chain.
+    ///
+    /// # Errors
+    /// If the chain couldn't be established.
     pub async fn identity(&self) -> JsResult<JsValue> {
         Ok(serde_wasm_bindgen::to_value(
             &self.default_chain_client().await?.identity().await?,
