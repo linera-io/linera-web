@@ -141,7 +141,7 @@
     <script type="module">
       import * as linera from '@linera/client';
 
-      const NATIVE_FUNGIBLE_APP_ID = '58299de6f0c2e9bddcee29aff497c7d47c728ec3b3ded01a4d45948a10a56221e7b40ec580a96e033c2f03c3464872d5a001e16506320a13b1264f153d64e3c9c398d551aeef7a38d0f5e26f315e63bb2357b7ed14901a3a580826a4199488ea00';
+      const FUNGIBLE_APP_ID = '465e465b050db5034fd8a51df46b9a7cf02a8a6414cc2b94b102e912208d4a4b';
 
       const gql = (query, variables = {}) => JSON.stringify({ query, variables });
 
@@ -157,8 +157,11 @@
 
       async function updateBalance(application) {
           const response = JSON.parse(await application.query(gql(`query { tickerSymbol, accounts { entries { key value } } }`)));
+          console.debug('application response:', response);
           document.querySelector('#ticker-symbol').textContent = response.data.tickerSymbol;
-          document.querySelector('#balance').textContent = (+response.data.accounts.entries[0].value).toFixed(2);
+
+          if (response?.data?.accounts?.entries?.[0])
+              document.querySelector('#balance').textContent = (+response.data.accounts.entries[0].value).toFixed(2);
       }
 
       async function transfer(application, donor, amount, recipient) {
@@ -169,7 +172,7 @@
 
           let errors = [];
           try {
-              const match = recipient.match(/^([0-9a-f]{64})@([0-9a-f]{64})$/);
+              const match = recipient.match(/^(0x[0-9a-f]{64})@([0-9a-f]{64})$/);
               if (!match) throw new Error('Invalid recipient address: expected `owner@chain_id`');
 
               const query = gql(`mutation(
@@ -181,7 +184,7 @@
               }`, {
                   donor,
                   amount,
-                  recipient: { owner: `User:${match[1]}`, chainId: match[2] },
+                  recipient: { owner: match[1], chainId: match[2] },
               });
 
               errors = JSON.parse(await application.query(query)).errors || [];
@@ -203,7 +206,7 @@
               event.preventDefault();
               transfer(
                   application,
-                  `User:${me}`,
+                  me,
                   event.target.elements.amount.value,
                   event.target.elements.recipient.value,
               );
@@ -215,13 +218,13 @@
           });
 
           await linera.default();
-          const faucet = await new linera.Faucet('https://faucet.mini-net.linera.net');
+          const faucet = await new linera.Faucet('https://faucet.testnet-babbage.linera.net');
           const wallet = await faucet.createWallet();
           const client = await new linera.Client(wallet);
           const chainId = await faucet.claimChain(client);
           document.querySelector('#chain-id').innerText = chainId;
 
-          const application = await client.frontend().application(NATIVE_FUNGIBLE_APP_ID);
+          const application = await client.frontend().application(FUNGIBLE_APP_ID);
 
           client.onNotification(notification => {
               let newBlock = notification.reason.NewBlock;
@@ -238,7 +241,7 @@
           await client.transfer({
               recipient: {
                   chain_id: chainId,
-                  owner: `User:${me}`,
+                  owner: me,
               },
               amount: 10,
           });

@@ -30,16 +30,6 @@ importers:
         specifier: ^5.4.10
         version: 5.4.11(terser@5.32.0)
 
-  examples/hosted-fungible:
-    dependencies:
-      '@linera/client':
-        specifier: workspace:^
-        version: link:../../client
-    devDependencies:
-      vite:
-        specifier: ^5.4.11
-        version: 5.4.11(terser@5.32.0)
-
   extension:
     dependencies:
       '@linera/client':
