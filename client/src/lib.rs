@@ -112,7 +112,7 @@ impl JsFaucet {
         use linera_client::persistent::LocalPersistExt as _;
         let mut context = client.client_context.lock().await;
         let key_pair = context.wallet.generate_key_pair();
-        let owner: linera_base::identifiers::AccountOwner = key_pair.public().into();
+        let owner: AccountOwner = key_pair.public().into();
         tracing::info!(
             "Requesting a new chain for owner {} using the faucet at address {}",
             owner,
@@ -203,7 +203,7 @@ pub struct Frontend(Client);
 
 #[derive(serde::Deserialize)]
 struct TransferParams {
-    donor: Option<linera_base::crypto::CryptoHash>,
+    donor: Option<AccountOwner>,
     amount: u64,
     recipient: linera_base::identifiers::Account,
 }
@@ -322,9 +322,7 @@ impl Client {
         let _hash = self
             .apply_client_command(&chain_client, || {
                 chain_client.transfer(
-                    params
-                        .donor
-                        .map_or(AccountOwner::CHAIN, AccountOwner::Address32),
+                    params.donor.unwrap_or(AccountOwner::CHAIN),
                     linera_base::data_types::Amount::from_tokens(params.amount.into()),
                     linera_execution::system::Recipient::Account(params.recipient),
                 )
