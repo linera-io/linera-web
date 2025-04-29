@@ -159,9 +159,7 @@
           const response = JSON.parse(await application.query(gql(`query { tickerSymbol, accounts { entries { key value } } }`)));
           console.debug('application response:', response);
           document.querySelector('#ticker-symbol').textContent = response.data.tickerSymbol;
-
-          if (response?.data?.accounts?.entries?.[0])
-              document.querySelector('#balance').textContent = (+response.data.accounts.entries[0].value).toFixed(2);
+          document.querySelector('#balance').textContent = (+(response?.data?.accounts?.entries?.[0] || 0)).toFixed(2);
       }
 
       async function transfer(application, donor, amount, recipient) {
