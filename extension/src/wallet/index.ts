@@ -11,7 +11,7 @@ export class Server {
   async setWallet(wallet: string) {
     this.wallet = wallet;
     await linera;
-    this.client = await new linera.Client({} as linera.Wallet); // Replace with actual wallet initialization
+    this.client = await new linera.Client({} as linera.Wallet, {} as linera.SignerError); // Replace with actual wallet initialization
     this.client.onNotification((notification: any) => {
       console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
       for (const subscriber of this.subscribers.values()) {
