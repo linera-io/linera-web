@@ -8,8 +8,6 @@ importers:
 
   .: {}
 
-  client: {}
-
   examples/counter:
     dependencies:
       '@linera/extension':
@@ -23,8 +21,8 @@ importers:
   examples/hosted-counter:
     dependencies:
       '@linera/client':
-        specifier: workspace:^
-        version: link:../../client
+        specifier: file:../../linera-protocol/linera-web
+        version: file:linera-protocol/linera-web
     devDependencies:
       vite:
         specifier: ^5.4.10
@@ -33,8 +31,8 @@ importers:
   extension:
     dependencies:
       '@linera/client':
-        specifier: workspace:^
-        version: link:../client
+        specifier: file:../linera-protocol/linera-web
+        version: file:linera-protocol/linera-web
       '@shoelace-style/shoelace':
         specifier: ^2.16.0
         version: 2.16.0(@types/react@18.3.2)
@@ -237,6 +235,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
+
+  '@linera/client@file:linera-protocol/linera-web':
+    resolution: {directory: linera-protocol/linera-web, type: directory}
 
   '@lit-labs/ssr-dom-shim@1.2.1':
     resolution: {integrity: sha512-wx4aBmgeGvFmOKucFKY+8VFJSYZxs9poN3SDNQFF6lT6NrQUnHiPB2PWz2sc4ieEcAaYYzN+1uWahEeTq2aRIQ==}
@@ -791,6 +792,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
     optional: true
+
+  '@linera/client@file:linera-protocol/linera-web': {}
 
   '@lit-labs/ssr-dom-shim@1.2.1': {}
 

@@ -16,6 +16,17 @@ then run `nix develop` to enter the build environment.
 
 Currently we only support building on Linux (`x86_64-unknown-linux-gnu`).
 
+It depends on a `linera-protocol` project via git submodule.
+If you are building the project for the first time, you need to initialize it:
+```
+git submodule init
+```
+
+If you want to update it:
+```
+git submodule update --remote
+```
+
 ## Building
 
 The project builds with `pnpm`.  First install the JavaScript dependencies:
