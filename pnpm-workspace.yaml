@@ -1,5 +1,4 @@
 packages:
-- client
 - extension
 - examples/counter
 - examples/hosted-counter
