@@ -1,13 +1,7 @@
 import { Wallet, ethers } from 'ethers';
+import { IJsSigner } from '@linera/client';
 
-// TypeScript interface to match the extern "C" JsSigner API
-export interface JsSigner {
-  sign(owner: string, value: Uint8Array): Promise<string>;
-  get_public_key(owner: string): Promise<string>;
-  contains_key(owner: string): Promise<boolean>;
-}
-
-export class EmbeddedEIP191Signer implements JsSigner {
+export class EmbeddedEIP191Signer implements IJsSigner {
   private wallet: Wallet;
 
   constructor(privateKeyHex: string) {
