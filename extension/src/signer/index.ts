@@ -13,7 +13,7 @@ export class EmbeddedEIP191Signer implements IJsSigner {
     return new EmbeddedEIP191Signer(wallet.privateKey);
   }
 
-  async sign(owner: string, value: Uint8Array): Promise<string> {
+  async sign(owner: string, value: string): Promise<string> {
     if (typeof owner !== 'string' || !ethers.isAddress(owner) || this.wallet.address.toLowerCase() !== owner.toLowerCase()) {
       throw new Error('Invalid owner address');
     }
