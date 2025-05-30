@@ -9,5 +9,12 @@
     "keywords": [],
     "author": "Linera <contact@linera.io>",
     "license": "Apache-2.0",
-    "devDependencies": {}
+    "devDependencies": {
+        "@types/chrome": "^0.0.267",
+        "@types/jest": "^29.5.14",
+        "@types/randomstring": "^1.3.0",
+        "ts-auto-guard": "^5.0.1",
+        "typescript": "^5.8.3",
+        "vite": "^5.4.5"
+    }
 }
