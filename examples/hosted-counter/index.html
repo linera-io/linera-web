@@ -60,15 +60,14 @@
       import * as linera from '@linera/client';
       import * as signer from '@linera/signer';
 
-      const COUNTER_APP_ID = '2b1a0df8868206a4b7d6c2fdda911e4355d6c0115b896d4947ef8e535ee3c6b8';
+      const COUNTER_APP_ID = '7ecd0211fe97206f5d78829a9e1f16166380ec138cb1f1e19cc162a0b8a036ac';
 
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet('http://127.0.0.1:8080');
-          const emedded_signer = signer.EmbeddedEIP191Signer.fromMnemonic("test test test test test test test test test test test junk");
+          const emedded_signer = new signer.EmbeddedEIP191Signer("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
-          // TODO: extract owner from the signer. It's the address of the wallet.
-          const owner = '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'
+          const owner = emedded_signer.address();
           document.getElementById('chain-id').innerText = await faucet.claimChain(wallet, owner);
           const client = await new linera.Client(wallet, emedded_signer);
           const counter = await client.frontend().application(COUNTER_APP_ID);
