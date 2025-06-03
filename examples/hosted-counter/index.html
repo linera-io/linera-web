@@ -36,6 +36,7 @@
       </div>
 
       <div class="logs">
+        <h2> Connected as <code id="owner" class="hex">requesting owner…</code> </h2>
         <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
         <ul id="logs">
           <template>
@@ -57,19 +58,23 @@
     </script>
 
     <script type="module">
+      import { Buffer } from 'buffer';
+      window.Buffer = Buffer;
+
       import * as linera from '@linera/client';
       import * as signer from '@linera/signer';
 
-      const COUNTER_APP_ID = '7ecd0211fe97206f5d78829a9e1f16166380ec138cb1f1e19cc162a0b8a036ac';
+      const COUNTER_APP_ID = '338fd1ac2b5aa9492052fabbce2cbad69383dd94c043260de9c36de784447a6a';
 
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet('http://127.0.0.1:8080');
-          const emedded_signer = new signer.EmbeddedEIP191Signer("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
+          const metamask_signer = await new signer.MetaMaskEIP191Signer();
           const wallet = await faucet.createWallet();
-          const owner = emedded_signer.address();
+          const owner = await metamask_signer.getConnectedAddress();
+          document.getElementById('owner').innerText = owner;
           document.getElementById('chain-id').innerText = await faucet.claimChain(wallet, owner);
-          const client = await new linera.Client(wallet, emedded_signer);
+          const client = await new linera.Client(wallet, metamask_signer);
           const counter = await client.frontend().application(COUNTER_APP_ID);
           const logs = document.getElementById('logs');
           const incrementButton = document.getElementById('increment-btn');
@@ -81,7 +86,6 @@
               entry.querySelector('.hash').textContent = block.hash;
               logs.insertBefore(entry, logs.firstChild);
           }
-
 
           async function updateCount() {
               const response = await counter.query('{ "query": "query { value }" }');

@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "@linera/client": "file:../../linera-protocol/linera-web",
-    "@linera/signer": "file:../../linera-protocol/linera-web/signer"
+    "@linera/signer": "file:../../linera-protocol/linera-web/signer",
+    "buffer": "^6.0.3"
   },
   "devDependencies": {
     "vite": "^5.4.10"
