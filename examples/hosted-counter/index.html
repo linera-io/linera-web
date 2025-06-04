@@ -69,12 +69,12 @@
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet('http://127.0.0.1:8080');
-          const metamask_signer = await new signer.MetaMaskEIP191Signer();
+          const embedded_signer = await new signer.EmbeddedEIP191Signer("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
-          const owner = await metamask_signer.getConnectedAddress();
+          const owner = embedded_signer.address();
           document.getElementById('owner').innerText = owner;
           document.getElementById('chain-id').innerText = await faucet.claimChain(wallet, owner);
-          const client = await new linera.Client(wallet, metamask_signer);
+          const client = await new linera.Client(wallet, embedded_signer);
           const counter = await client.frontend().application(COUNTER_APP_ID);
           const logs = document.getElementById('logs');
           const incrementButton = document.getElementById('increment-btn');

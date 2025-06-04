@@ -219,12 +219,11 @@
           });
 
           await linera.default();
-          throw new Error('INSERT FAUCET URL HERE'); // Replace with your Linera Faucet URL
-          // const faucet = await new linera.Faucet(FAUCET URL HERE);
+          const faucet = await new linera.Faucet('http://127.0.0.1:8080');
           throw new Error('INSERT PRIVKEY HERE'); // Replace with your private key
-          // const embedded_signer = await new signer.EmbeddedSigner("INSERT PRIVKEY HERE");
+          const embedded_signer = await new signer.EmbeddedEIP191Signer("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
-          const owner = await embedded_signer.address();
+          const owner = embedded_signer.address();
           const chainId = await faucet.claimChain(wallet, owner);
           const client = await new linera.Client(wallet, embedded_signer);
           document.querySelector('#chain-id').innerText = chainId;
