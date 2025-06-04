@@ -36,6 +36,7 @@
       </div>
 
       <div class="logs">
+        <h2>Connected as <code id="owner" class="hex">requesting owner…</code> </h2>
         <h2>Chain history for <code id="chain-id" class="hex">requesting chain…</code></h2>
         <ul id="logs">
           <template>
@@ -50,22 +51,30 @@
     <script type="importmap">
       {
           "imports": {
-              "@linera/client": "./js/@linera/client/linera_web.js"
+              "@linera/client": "./js/@linera/client/linera_web.js",
+              "@linera/signer": "./js/@linera/signer/index.js"
           }
       }
     </script>
 
     <script type="module">
-      import * as linera from '@linera/client';
+      import { Buffer } from 'buffer';
+      window.Buffer = Buffer;
 
-      const COUNTER_APP_ID = '2b1a0df8868206a4b7d6c2fdda911e4355d6c0115b896d4947ef8e535ee3c6b8';
+      import * as linera from '@linera/client';
+      import * as signer from '@linera/signer';
+
+      const COUNTER_APP_ID = '338fd1ac2b5aa9492052fabbce2cbad69383dd94c043260de9c36de784447a6a';
 
       async function run() {
           await linera.default();
-          const faucet = await new linera.Faucet('https://faucet.testnet-babbage.linera.net');
+          const faucet = await new linera.Faucet('http://127.0.0.1:8080');
+          const embedded_signer = await new signer.EmbeddedEIP191Signer("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
-          const client = await new linera.Client(wallet);
-          document.getElementById('chain-id').innerText = await faucet.claimChain(client);
+          const owner = embedded_signer.address();
+          document.getElementById('owner').innerText = owner;
+          document.getElementById('chain-id').innerText = await faucet.claimChain(wallet, owner);
+          const client = await new linera.Client(wallet, embedded_signer);
           const counter = await client.frontend().application(COUNTER_APP_ID);
           const logs = document.getElementById('logs');
           const incrementButton = document.getElementById('increment-btn');
@@ -77,7 +86,6 @@
               entry.querySelector('.hash').textContent = block.hash;
               logs.insertBefore(entry, logs.firstChild);
           }
-
 
           async function updateCount() {
               const response = await counter.query('{ "query": "query { value }" }');
