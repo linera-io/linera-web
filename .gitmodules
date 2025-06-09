@@ -1,4 +1,3 @@
 [submodule "linera-protocol"]
 	path = linera-protocol
 	url = https://github.com/linera-io/linera-protocol
-	branch = web-signer-fn

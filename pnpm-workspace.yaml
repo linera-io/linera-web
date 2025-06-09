@@ -2,3 +2,6 @@ packages:
 - extension
 - examples/counter
 - examples/hosted-counter
+- examples/hosted-fungible
+- linera-protocol/linera-web
+- linera-protocol/linera-web/signer

@@ -15,8 +15,6 @@
         "ci": "pnpm install --frozen-lockfile && pnpm build"
     },
     "dependencies": {
-        "@linera/client": "file:../linera-protocol/linera-web",
-        "@linera/signer": "file:../../linera-protocol/linera-web/signer",
         "@shoelace-style/shoelace": "^2.16.0",
         "lit": "^3.2.0",
         "randomstring": "^1.3.0",

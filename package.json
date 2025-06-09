@@ -9,6 +9,10 @@
     "keywords": [],
     "author": "Linera <contact@linera.io>",
     "license": "Apache-2.0",
+    "dependencies": {
+        "@linera/client": "file:./linera-protocol/linera-web",
+        "@linera/signer": "file:./linera-protocol/linera-web/signer"
+    },
     "devDependencies": {
         "@types/chrome": "^0.0.267",
         "@types/jest": "^29.5.14",
