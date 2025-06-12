@@ -141,7 +141,7 @@
 
     <script type="module">
       import * as linera from '@linera/client';
-      import * as signer from '@linera/signer';
+      import * as linera_signer from '@linera/signer';
 
       // This needs to point at actual deployed fungible application ID.
       const FUNGIBLE_APP_ID = import.meta.env.VITE_FUNGIBLE_APP_ID;
@@ -220,7 +220,7 @@
 
           await linera.default();
           const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
-          const signer = await new signer.PrivateKey("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
+          const signer = await new linera_signer.PrivateKeySigner("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
           const owner = signer.address();
           const chainId = await faucet.claimChain(wallet, owner);

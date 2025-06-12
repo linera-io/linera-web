@@ -63,6 +63,22 @@ importers:
         specifier: ^5.4.11
         version: 5.4.19(@types/node@24.0.0)
 
+  examples/hosted-counter-metamask:
+    dependencies:
+      '@linera/client':
+        specifier: workspace:*
+        version: link:../../linera-protocol/linera-web
+      '@linera/signer':
+        specifier: workspace:*
+        version: link:../../linera-protocol/linera-web/signer
+      buffer:
+        specifier: ^6.0.3
+        version: 6.0.3
+    devDependencies:
+      vite:
+        specifier: ^5.4.11
+        version: 5.4.19(@types/node@24.0.0)
+
   examples/hosted-fungible:
     dependencies:
       '@linera/client':

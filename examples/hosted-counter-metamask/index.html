@@ -58,9 +58,6 @@
     </script>
 
     <script type="module">
-      import { Buffer } from 'buffer';
-      window.Buffer = Buffer;
-
       import * as linera from '@linera/client';
       import * as linera_signer from '@linera/signer';
 
@@ -69,7 +66,7 @@
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
-          const signer = await new linera_signer.PrivateKeySigner("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
+          const signer = await new linera_signer.MetaMaskEIP191Signer();
           const wallet = await faucet.createWallet();
           const owner = await signer.address();
           document.getElementById('owner').innerText = owner;
