@@ -144,7 +144,7 @@
       import * as signer from '@linera/signer';
 
       // This needs to point at actual deployed fungible application ID.
-      const FUNGIBLE_APP_ID = 'ae2e8739878ed86fe67eb3a3f473437e122233ab46fc00f1d115462dcf9a597b8588f06d13062198951b0a37c0552db564c5d6903f1e00e8f0e2df6b87891bd700';
+      const FUNGIBLE_APP_ID = import.meta.env.VITE_FUNGIBLE_APP_ID;
 
       const gql = (query, variables = {}) => JSON.stringify({ query, variables });
 
@@ -219,8 +219,7 @@
           });
 
           await linera.default();
-          const faucet = await new linera.Faucet('http://127.0.0.1:8080');
-          throw new Error('INSERT PRIVKEY HERE'); // Replace with your private key
+          const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
           const signer = await new signer.PrivateKey("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
           const owner = signer.address();

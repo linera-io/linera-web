@@ -64,11 +64,11 @@
       import * as linera from '@linera/client';
       import * as signer from '@linera/signer';
 
-      const COUNTER_APP_ID = '87bdd2357acfe1a8c598ec04740755c46d7644f21d7aa287c96186329ddfe9fc';
+      const COUNTER_APP_ID = import.meta.env.VITE_COUNTER_APP_ID;
 
       async function run() {
           await linera.default();
-          const faucet = await new linera.Faucet('http://127.0.0.1:8080');
+          const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
           const signer = await new signer.MetaMaskEIP191Signer();
           const wallet = await faucet.createWallet();
           const owner = await signer.address();
