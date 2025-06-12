@@ -69,7 +69,7 @@
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
-          const signer = await new signer.MetaMaskEIP191Signer();
+          const signer = await new signer.PrivateKey("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66");
           const wallet = await faucet.createWallet();
           const owner = await signer.address();
           document.getElementById('owner').innerText = owner;
