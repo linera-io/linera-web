@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@linera/client": "workspace:*",
-    "@linera/signer": "workspace:*",
-    "buffer": "^6.0.3"
+    "@linera/signer": "workspace:*"
   },
   "devDependencies": {
     "vite": "^5.4.11"
