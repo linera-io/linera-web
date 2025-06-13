@@ -1,5 +1,6 @@
 import * as linera from '@linera/client';
 import type { Client } from '@linera/client';
+import { PrivateKeySigner } from '@linera/signer';
 
 import * as guard from './message.guard';
 
@@ -11,7 +12,7 @@ export class Server {
   async setWallet(wallet: string) {
     this.wallet = wallet;
     await linera;
-    this.client = await new linera.Client({} as linera.Wallet, {} as linera.Signer); // Replace with actual wallet initialization
+    this.client = await new linera.Client({} as linera.Wallet, new PrivateKeySigner("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66") ); // Replace with actual wallet initialization
     this.client.onNotification((notification: any) => {
       console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
       for (const subscriber of this.subscribers.values()) {
