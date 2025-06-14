@@ -10,8 +10,8 @@
     "author": "Linera <contact@linera.io>",
     "license": "Apache-2.0",
     "dependencies": {
-        "@linera/client": "file:./linera-protocol/linera-web",
-        "@linera/signer": "file:./linera-protocol/linera-web/signer"
+        "@linera/client": "workspace:*",
+        "@linera/signer": "workspace:*"
     },
     "devDependencies": {
         "@types/chrome": "^0.0.267",
