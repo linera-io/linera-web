@@ -30,6 +30,6 @@ export default defineConfig({
     include: ['@adraffy/ens-normalize'],
   },
   ssr: {
-    noExternal: ['@adraffy/ens-normalize'], // 🟢 this helps in some cases, even if not using SSR
+    noExternal: ['@adraffy/ens-normalize'],
   }
 })
