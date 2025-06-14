@@ -69,3 +69,12 @@ For development, you can also use `pnpm build --watch` to
 automatically rebuild the extension on change.  Changes to the client
 worker will not propagate to the extension, but once you run
 `wasm-pack build` they will be picked up.
+
+
+## Examples
+
+In `/examples` directory there are a couple of examples that can be run 
+to test the Linera network. The faucet address and application addresses 
+are controlled via ENV variables. Those can be set in `.env` file in the root
+of the project or you can overwrite them in `.env.production.local` - 
+a file ignored by git and so needs to be created locally.

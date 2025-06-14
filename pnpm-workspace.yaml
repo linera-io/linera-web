@@ -1,4 +1,5 @@
 packages:
-- extension
-- examples/counter
-- examples/hosted-counter
+  - "examples/*"
+  - "extension"
+  - "linera-protocol/**"
+  

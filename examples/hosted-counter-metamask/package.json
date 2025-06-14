@@ -1,5 +1,5 @@
 {
-  "name": "@linera/examples/hosted-fungible",
+  "name": "@linera/examples/hosted-counter-metamask",
   "private": true,
   "author": "Linera <contact@linera.io>",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "ci": "pnpm build"
+    "ci": "pnpm install --frozen-lockfile && pnpm build"
   },
   "dependencies": {
     "@linera/client": "workspace:*",

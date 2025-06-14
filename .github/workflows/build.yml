@@ -39,7 +39,7 @@ jobs:
       with:
         submodules: true
     - uses: cachix/install-nix-action@v26
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: DeterminateSystems/flakehub-cache-action@main
     - name: Run all CI tasks
       run: |
         nix develop '.?submodules=1' --override-input linera-protocol ./linera-protocol --command pnpm run ci
