@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "ci": "pnpm install --frozen-lockfile && pnpm build"
+    "ci": "pnpm build"
   },
   "dependencies": {
     "@linera/client": "workspace:*",

@@ -12,7 +12,7 @@
         "build": "pnpm build:extension && pnpm build:library",
         "preview": "vite preview",
         "prepare": "pnpm build:library",
-        "ci": "pnpm install --frozen-lockfile && pnpm build"
+        "ci": "pnpm build"
     },
     "dependencies": {
         "@shoelace-style/shoelace": "^2.16.0",
