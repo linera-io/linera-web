@@ -12,7 +12,7 @@
     "ci": "pnpm build"
   },
   "dependencies": {
-    "@linera/client": "file:../../linera-protocol/linera-web"
+    "@linera/client": "workspace:*"
   },
   "devDependencies": {
     "vite": "^5.4.11"

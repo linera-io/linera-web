@@ -1,3 +1,5 @@
 packages:
 - extension
 - examples/*
+- linera-protocol/linera-web
+- linera-protocol/linera-web/signer
