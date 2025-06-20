@@ -61,14 +61,16 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1744648029,
-        "narHash": "sha256-9ERIbYlXQzeIPqaYe5H2RXLaO/RdfEE8q2XuE47uanw=",
-        "path": "linera-protocol",
-        "type": "path"
+        "lastModified": 1750411983,
+        "narHash": "sha256-Su0WDQaIJsNoxK8/0A6JaCwLT+33M2sr+tSstj8tRAU=",
+        "rev": "94efef8d5c4028f5fcde58152ab55009eae9b538",
+        "revCount": 4338,
+        "type": "git",
+        "url": "file:./linera-protocol"
       },
       "original": {
-        "path": "linera-protocol",
-        "type": "path"
+        "type": "git",
+        "url": "file:./linera-protocol"
       }
     },
     "nixpkgs": {
