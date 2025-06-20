@@ -3,11 +3,14 @@
     "version": "1.0.0",
     "description": "",
     "scripts": {
-        "build": "pnpm -r build",
-        "ci": "pnpm -r run ci"
+        "ci": "pnpm install; pnpm -r run ci"
     },
     "keywords": [],
     "author": "Linera <contact@linera.io>",
     "license": "Apache-2.0",
-    "devDependencies": {}
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@linera/client"
+        ]
+    }
 }
