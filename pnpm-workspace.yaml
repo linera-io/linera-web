@@ -1,5 +1,4 @@
 packages:
-  - "examples/*"
-  - "extension"
-  - "linera-protocol/**"
-  
+- "examples/*"
+- "extension"
+- "linera-protocol/**"

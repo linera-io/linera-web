@@ -3,8 +3,7 @@
     "version": "1.0.0",
     "description": "",
     "scripts": {
-        "build": "pnpm -r build",
-        "ci": "pnpm install --frozen-lockfile && pnpm -r run ci"
+        "ci": "pnpm install; pnpm -r run ci"
     },
     "keywords": [],
     "author": "Linera <contact@linera.io>",
@@ -21,5 +20,11 @@
         "ts-auto-guard": "^5.0.1",
         "typescript": "^5.8.3",
         "vite": "^5.4.5"
+    },
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@linera/client",
+            "@linera/signer"
+        ]
     }
 }

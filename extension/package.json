@@ -7,8 +7,8 @@
     "browser": "dist/library/linera.js",
     "scripts": {
         "dev": "vite",
-        "build:extension": "tsc && vite build -c extension.vite.config.js",
-        "build:library": "tsc && vite build -c library.vite.config.js",
+        "build:extension": "vite build -c extension.vite.config.js",
+        "build:library": "vite build -c library.vite.config.js",
         "build": "pnpm build:extension && pnpm build:library",
         "preview": "vite preview",
         "prepare": "pnpm build:library",
