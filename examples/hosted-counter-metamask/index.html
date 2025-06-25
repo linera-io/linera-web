@@ -59,16 +59,14 @@
 
     <script type="module">
       import * as linera from '@linera/client';
-      import { PrivateKey } from '@linera/signer';
-      import { ethers } from 'ethers';
+      import * as linera_signer from '@linera/signer';
 
       const COUNTER_APP_ID = import.meta.env.VITE_COUNTER_APP_ID;
 
       async function run() {
           await linera.default();
           const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
-          const mnemonic = ethers.Wallet.createRandom().mnemonic.phrase;
-          const signer = PrivateKey.fromMnemonic(mnemonic);
+          const signer = await new linera_signer.MetaMaskEIP191Signer();
           const wallet = await faucet.createWallet();
           const owner = await signer.address();
           document.getElementById('owner').innerText = owner;

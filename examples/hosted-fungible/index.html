@@ -127,6 +127,7 @@
       </div>
 
       <div class="logs">
+        <h2>Connected as <code id="owner" class="hex">requesting owner…</code> </h2>
         <h2>Chain history for <code id="chain-id" class="hex">requesting a new microchain…</code></h2>
         <ul id="logs">
           <template>
@@ -140,8 +141,11 @@
 
     <script type="module">
       import * as linera from '@linera/client';
+      import { PrivateKey } from '@linera/signer';
+      import { ethers } from 'ethers';
 
-      const FUNGIBLE_APP_ID = '465e465b050db5034fd8a51df46b9a7cf02a8a6414cc2b94b102e912208d4a4b';
+      // This needs to point at actual deployed fungible application ID.
+      const FUNGIBLE_APP_ID = import.meta.env.VITE_FUNGIBLE_APP_ID;
 
       const gql = (query, variables = {}) => JSON.stringify({ query, variables });
 
@@ -216,11 +220,15 @@
           });
 
           await linera.default();
-          const faucet = await new linera.Faucet('https://faucet.testnet-babbage.linera.net');
+          const faucet = await new linera.Faucet(import.meta.env.VITE_FAUCET_URL);
+          const mnemonic = ethers.Wallet.createRandom().mnemonic.phrase;
+          const signer = PrivateKey.fromMnemonic(mnemonic);
           const wallet = await faucet.createWallet();
-          const client = await new linera.Client(wallet);
-          const chainId = await faucet.claimChain(client);
+          const owner = signer.address();
+          const chainId = await faucet.claimChain(wallet, owner);
+          const client = await new linera.Client(wallet, signer);
           document.querySelector('#chain-id').innerText = chainId;
+          document.querySelector('#owner').innerText = owner;
 
           const application = await client.frontend().application(FUNGIBLE_APP_ID);
 

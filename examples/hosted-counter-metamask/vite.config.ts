@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/hosted/fungible/',
+  base: '/hosted/counter/',
   server: {
     headers: {
       'Cross-Origin-Embedder-Policy': 'require-corp',
@@ -11,11 +11,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      input: {
-        index: 'index.html',
-        linera: '@linera/client',
-      },
-      preserveEntrySignatures: 'strict',
+      external: ['@linera/client'],
     },
   },
   esbuild: {
@@ -27,9 +23,5 @@ export default defineConfig({
     exclude: [
       '@linera/client',
     ],
-    include: ['@adraffy/ens-normalize'],
   },
-  ssr: {
-    noExternal: ['@adraffy/ens-normalize'],
-  }
 })

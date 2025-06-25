@@ -1,6 +1,4 @@
 packages:
-- extension
-- examples/counter
-- examples/hosted-counter
-- examples/hosted-fungible
-- linera-protocol/linera-web
+- "examples/*"
+- "extension"
+- "linera-protocol/**"
