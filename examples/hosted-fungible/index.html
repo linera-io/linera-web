@@ -232,6 +232,8 @@
 
           const application = await client.frontend().application(FUNGIBLE_APP_ID);
 
+          await updateBalance(application);
+
           client.onNotification(notification => {
               let newBlock = notification.reason.NewBlock;
               if (!newBlock) return;
