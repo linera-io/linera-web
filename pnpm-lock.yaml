@@ -117,7 +117,7 @@ importers:
     dependencies:
       '@apollo/client':
         specifier: ^3.7.10
-        version: 3.13.8(@types/react@19.1.8)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 3.13.8(@types/react@18.3.23)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       graphql:
         specifier: ^16.6.0
         version: 16.11.0
@@ -209,7 +209,7 @@ importers:
     dependencies:
       '@apollo/client':
         specifier: ^3.7.10
-        version: 3.13.8(@types/react@19.1.8)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 3.13.8(@types/react@18.3.23)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       antd:
         specifier: ^5.15.2
         version: 5.26.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -246,7 +246,7 @@ importers:
     dependencies:
       '@apollo/client':
         specifier: ^3.7.10
-        version: 3.13.8(@types/react@19.1.8)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 3.13.8(@types/react@18.3.23)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@chatscope/chat-ui-kit-react':
         specifier: ^2.0.3
         version: 2.1.1(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -286,7 +286,7 @@ importers:
     dependencies:
       '@apollo/client':
         specifier: ^3.7.10
-        version: 3.13.8(@types/react@19.1.8)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 3.13.8(@types/react@18.3.23)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       antd:
         specifier: ^5.15.2
         version: 5.26.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -426,8 +426,6 @@ importers:
         specifier: ^8.16.4
         version: 8.45.0
 
-  linera-protocol/linera-explorer/pkg: {}
-
   linera-protocol/linera-web:
     devDependencies:
       prettier:
@@ -436,6 +434,9 @@ importers:
       typedoc:
         specifier: ^0.28.5
         version: 0.28.5(typescript@5.8.3)
+      typedoc-plugin-markdown:
+        specifier: ^4.7.0
+        version: 4.7.0(typedoc@0.28.5(typescript@5.8.3))
 
   linera-protocol/linera-web/signer:
     dependencies:
@@ -9051,6 +9052,12 @@ packages:
   typedarray-to-buffer@3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
 
+  typedoc-plugin-markdown@4.7.0:
+    resolution: {integrity: sha512-PitbnAps2vpcqK2gargKoiFXLWFttvwUbyns/E6zGIFG5Gz8ZQJGttHnYR9csOlcSjB/uyjd8tnoayrtsXG17w==}
+    engines: {node: '>= 18'}
+    peerDependencies:
+      typedoc: 0.28.x
+
   typedoc@0.28.5:
     resolution: {integrity: sha512-5PzUddaA9FbaarUzIsEc4wNXCiO4Ot3bJNeMF2qKpYlTmM9TTaSHQ7162w756ERCkXER/+o2purRG6YOAv6EMA==}
     engines: {node: '>= 18', pnpm: '>= 10'}
@@ -9867,29 +9874,6 @@ snapshots:
       optimism: 0.18.1
       prop-types: 15.8.1
       rehackt: 0.1.0(@types/react@18.3.23)(react@18.3.1)
-      symbol-observable: 4.0.0
-      ts-invariant: 0.10.3
-      tslib: 2.7.0
-      zen-observable-ts: 1.2.5
-    optionalDependencies:
-      graphql-ws: 5.16.2(graphql@16.11.0)
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-    transitivePeerDependencies:
-      - '@types/react'
-
-  '@apollo/client@3.13.8(@types/react@19.1.8)(graphql-ws@5.16.2(graphql@16.11.0))(graphql@16.11.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.11.0)
-      '@wry/caches': 1.0.1
-      '@wry/equality': 0.5.7
-      '@wry/trie': 0.5.0
-      graphql: 16.11.0
-      graphql-tag: 2.12.6(graphql@16.11.0)
-      hoist-non-react-statics: 3.3.2
-      optimism: 0.18.1
-      prop-types: 15.8.1
-      rehackt: 0.1.0(@types/react@19.1.8)(react@18.3.1)
       symbol-observable: 4.0.0
       ts-invariant: 0.10.3
       tslib: 2.7.0
@@ -19880,11 +19864,6 @@ snapshots:
       '@types/react': 18.3.23
       react: 18.3.1
 
-  rehackt@0.1.0(@types/react@19.1.8)(react@18.3.1):
-    optionalDependencies:
-      '@types/react': 19.1.8
-      react: 18.3.1
-
   relateurl@0.2.7: {}
 
   relay-runtime@12.0.0:
@@ -21039,6 +21018,10 @@ snapshots:
   typedarray-to-buffer@3.1.5:
     dependencies:
       is-typedarray: 1.0.0
+
+  typedoc-plugin-markdown@4.7.0(typedoc@0.28.5(typescript@5.8.3)):
+    dependencies:
+      typedoc: 0.28.5(typescript@5.8.3)
 
   typedoc@0.28.5(typescript@5.8.3):
     dependencies:
