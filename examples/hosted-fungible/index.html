@@ -163,7 +163,7 @@
           const response = JSON.parse(await application.query(gql(`query { tickerSymbol, accounts { entries { key value } } }`)));
           console.debug('application response:', response);
           document.querySelector('#ticker-symbol').textContent = response.data.tickerSymbol;
-          document.querySelector('#balance').textContent = (+(response?.data?.accounts?.entries?.[0] || 0)).toFixed(2);
+          document.querySelector('#balance').textContent = (+(response?.data?.accounts?.entries?.[0]?.value || 0)).toFixed(2);
       }
 
       async function transfer(application, donor, amount, recipient) {
@@ -174,7 +174,7 @@
 
           let errors = [];
           try {
-              const match = recipient.match(/^(0x[0-9a-f]{64})@([0-9a-f]{64})$/);
+              const match = recipient.match(/^(0x[0-9a-f]{40})@([0-9a-f]{64})$/);
               if (!match) throw new Error('Invalid recipient address: expected `owner@chain_id`');
 
               const query = gql(`mutation(
@@ -231,6 +231,8 @@
           document.querySelector('#owner').innerText = owner;
 
           const application = await client.frontend().application(FUNGIBLE_APP_ID);
+
+          await updateBalance(application);
 
           client.onNotification(notification => {
               let newBlock = notification.reason.NewBlock;
