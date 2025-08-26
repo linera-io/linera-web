@@ -56,22 +56,20 @@
         "crane": "crane",
         "flake-parts": "flake-parts_2",
         "nixpkgs": "nixpkgs",
+        "nixup": "nixup",
         "rust-overlay": "rust-overlay",
         "systems": "systems",
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1750411983,
-        "narHash": "sha256-Su0WDQaIJsNoxK8/0A6JaCwLT+33M2sr+tSstj8tRAU=",
-        "rev": "94efef8d5c4028f5fcde58152ab55009eae9b538",
-        "revCount": 4338,
-        "type": "git",
-        "url": "file:./linera-protocol"
+        "path": "linera-protocol",
+        "type": "path"
       },
       "original": {
-        "type": "git",
-        "url": "file:./linera-protocol"
-      }
+        "path": "linera-protocol",
+        "type": "path"
+      },
+      "parent": []
     },
     "nixpkgs": {
       "locked": {
@@ -164,6 +162,21 @@
         "owner": "nixos",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixup": {
+      "locked": {
+        "lastModified": 1752796905,
+        "narHash": "sha256-iQOBZhz7DlNYSALEnUvMoy6O872E7/6lNFm7rDdVVpc=",
+        "owner": "Twey",
+        "repo": "nixup",
+        "rev": "6914fc232e4f8c9a6617b8b8487b7931eaff1e74",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Twey",
+        "repo": "nixup",
         "type": "github"
       }
     },
