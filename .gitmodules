@@ -1,4 +1,4 @@
 [submodule "linera-protocol"]
 	path = linera-protocol
 	url = https://github.com/linera-io/linera-protocol
-	branch = testnet_conway
+	branch = devnet_2025_08_21
