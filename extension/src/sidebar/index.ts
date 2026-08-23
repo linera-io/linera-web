@@ -110,12 +110,25 @@ export class Sidebar extends LitElement {
   }
 
   private async onWalletChange(wallet: string) {
-    chrome.runtime.sendMessage({
-      type: 'set_wallet',
-      target: 'wallet',
-      wallet,
-    });
-    this.wallet = JSON.parse(wallet);
+    try {
+      const metadata: unknown = JSON.parse(wallet);
+      if (
+        metadata === null
+        || typeof metadata !== 'object'
+        || typeof (metadata as { default?: unknown }).default !== 'string'
+      ) {
+        throw new Error('The selected wallet file does not contain a valid default chain');
+      }
+
+      await chrome.runtime.sendMessage({
+        type: 'set_wallet',
+        target: 'wallet',
+        wallet,
+      });
+      this.wallet = { default: (metadata as { default: string }).default };
+    } catch (error) {
+      console.error('Failed to select wallet', error);
+    }
   }
 }
 
