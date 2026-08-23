@@ -1,24 +1,52 @@
 import * as linera from '@linera/client';
 import type { Client } from '@linera/client';
-import { PrivateKey } from '@linera/signer';
 
 import * as guard from './message.guard';
+
+type WalletMetadata = {
+  default: string;
+};
+
+function parseWalletMetadata(wallet: string): WalletMetadata {
+  let value: unknown;
+  try {
+    value = JSON.parse(wallet);
+  } catch {
+    throw new Error('The selected wallet file is not valid JSON');
+  }
+
+  if (
+    value === null
+    || typeof value !== 'object'
+    || typeof (value as { default?: unknown }).default !== 'string'
+  ) {
+    throw new Error('The selected wallet file does not contain a valid default chain');
+  }
+
+  return { default: (value as { default: string }).default };
+}
 
 export class Server {
   private subscribers = new Set<chrome.runtime.Port>();
 
-  private constructor(private client?: Client, private wallet?: string) { }
+  private constructor(private client?: Client, private wallet?: WalletMetadata) { }
 
   async setWallet(wallet: string) {
-    this.wallet = wallet;
-    await linera;
-    this.client = await new linera.Client({} as linera.Wallet, new PrivateKey("f77a21701522a03b01c111ad2d2cdaf2b8403b47507ee0aec3c2e52b765d7a66") ); // Replace with actual wallet initialization
-    this.client.onNotification((notification: any) => {
-      console.debug('got notification for', this.subscribers.size, 'subscribers:', notification);
-      for (const subscriber of this.subscribers.values()) {
-        subscriber.postMessage(notification);
+    const metadata = parseWalletMetadata(wallet);
+    const previousClient = this.client;
+    this.client = undefined;
+    this.wallet = metadata;
+
+    if (previousClient) {
+      try {
+        await previousClient.asyncDispose();
+      } catch (error) {
+        console.warn('Failed to dispose the previous wallet client', error);
       }
-    });
+    }
+
+    // The browser client does not expose a supported import API for CLI wallet JSON.
+    // Never fall back to an embedded or otherwise unvalidated private key.
   }
 
   async init() {
@@ -40,14 +68,22 @@ export class Server {
 
       if (guard.isQueryApplicationRequest(message)) {
         (async () => {
-          if (!this.client) {
-            console.warn('client went away');
-            return;
+          try {
+            if (!this.client) {
+              const error = 'Wallet queries are unavailable until a supported wallet client is initialized';
+              console.warn(error);
+              respond({ error });
+              return;
+            }
+
+            const application = await this.client.frontend()
+              .application(message.applicationId);
+            respond(await application.query(message.query));
+          } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error('Wallet application query failed', error);
+            respond({ error: message });
           }
-          
-          const application = await this.client.frontend()
-            .application(message.applicationId);
-          respond(await application.query(message.query));
         })();
         return true;
       }
@@ -58,7 +94,9 @@ export class Server {
       }
 
       if (guard.isSetWalletRequest(message))
-        this.setWallet(message.wallet);
+        this.setWallet(message.wallet).catch(error => {
+          console.error('Failed to load wallet', error);
+        });
       else if (guard.isGetWalletRequest(message))
         respond(this.wallet);
       else
